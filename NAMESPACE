@@ -1,0 +1,2 @@
+exportPattern("^[^\\.]")
+import(deSolve, coda, gridExtra, ggplot2, reshape2, doParallel,truncnorm)
