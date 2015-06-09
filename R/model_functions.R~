@@ -1,0 +1,259 @@
+# ODEs for Boosting and Waning model
+# Used by the ode solver, deSolve.
+# Takes an array of times, an array of data (x),
+# and an array of parameters for the model.
+# Returns a list of gradients for each provided time point
+# tmp <- as.data.frame(ode(y=c(y=y0),times=t,titre_model,parms=c(mu,dRF,tp,ts,m)),rtol=1e-5,atol=1e-5)
+titre_model <- function(t, x, params){
+    mu <- params[1]
+    dRF <- params[2]
+    tp <- params[3]
+    ts <- params[4]
+    m <- params[5]
+    dY <- ifelse(t < tp, mu/tp, 
+                 ifelse(t >= tp & t< ts, -((1-dRF)*mu)/(ts-tp), 
+                        ifelse(t >= ts, -m,0)))
+    list(c(dY))
+    
+}
+
+
+
+predict.titre.fast.bounded <- function(params,times){
+    trunc_lower <- params[1]
+    params <- params[-1]
+    first_infection <- params[1]
+    out <- matrix(data=c(times,rep(0,length(times))),nrow=length(times),ncol=2)
+    max_t <- times[length(times)]
+    no_infections <- as.integer(length(params)/6)
+    y0 <- 0
+    
+    # Get dynamics between each infection
+    for(i in 1:no_infections){
+      # Check if this is final infection. If so, get dynamics up to end. If not, get dynamics up until next infection
+      if(i==no_infections) final_t <- max_t
+      else final_t <- params[6*(i)+1]
+
+      # Get current infection time
+      t_i <- params[6*(i-1)+1]
+
+      # Generate time frame, where length is between the current and next infection
+      t <- c(times[times <= final_t & times > t_i],final_t)
+
+      # Get parameters
+      mu <- params[6*(i-1)+2]
+      dRF <- params[6*(i-1)+3]
+      tp <- params[6*(i-1)+4]
+      ts <- params[6*(i-1)+5] + tp
+      m <- params[6*(i-1)+6]
+
+      # Use y=mx + c model to get predictions
+      Y <- (((t <= (tp + t_i))*(mu/tp)*(t-t_i)) +
+          ((t > (tp + t_i))*(t <= (ts + t_i))*((-(((1-dRF)*mu)/(ts-tp))*(t-t_i) + (((1-dRF)*mu)/(ts-tp))*tp + mu))) +
+              ((t > (ts + t_i))*((m*ts-m*(t-t_i)) + (dRF*mu)))) + y0
+
+      Y[Y<trunc_lower] <- trunc_lower
+      y0 <- Y[length(t)]
+      present <- out[,1] %in% t
+      
+      Y <- Y[1:length(out[present,2])]
+
+      out[present,2] <- Y
+  }
+    return(out)
+}
+
+
+
+
+
+predict_titre_universal_m_2<- function(params, times){
+    m <- params[1]
+    trunc_lower <- params[2]
+    first_infection <- params[3]
+
+    out <- matrix(data=c(times,rep(0,length(times))),nrow=length(times),ncol=2)
+    max_t <- times[length(times)]
+    params <- params[c(-1,-2)]
+    no_infections <- as.integer((length(params))/5)
+    y0 <- 0
+    
+                                        # Get dynamics between each infection
+    for(i in 1:no_infections){
+                                        # Check if this is final infection. If so, get dynamics up to end. If not, get dynamics up until next infection
+        if(i==no_infections) final_t <- max_t
+        else final_t <- params[5*(i)+1]
+
+                                        # Get current infection time
+        t_i <- params[5*(i-1)+1]
+
+                                        # Generate time frame, where length is between the current and next infection
+        t <- c(times[times <= final_t & times > t_i],final_t)
+
+                                        # Get parameters
+        mu <- params[5*(i-1)+2]
+        dRF <- params[5*(i-1)+3]
+        tp <- params[5*(i-1)+4]
+        ts <- params[5*(i-1)+5] + tp
+
+                                        # Use y=mx + c model to get predictions
+        Y <- (((t <= (tp + t_i))*(mu/tp)*(t-t_i)) +
+              ((t > (tp + t_i))*(t <= (ts + t_i))*((-(((1-dRF)*mu)/(ts-tp))*(t-t_i) + (((1-dRF)*mu)/(ts-tp))*tp + mu))) +
+              ((t > (ts + t_i))*((m*ts-m*(t-t_i)) + (dRF*mu)))) + y0
+
+        Y[Y<trunc_lower] <- trunc_lower
+        y0 <- Y[length(t)]
+        present <- out[,1] %in% t
+        
+        Y <- Y[1:length(out[present,2])]
+
+        out[present,2] <- Y
+    }
+    return(out)
+}
+
+
+
+
+predict.titre.OLD <- function(params,times){
+    first_infection <- params[1]
+    t <- c(times[times < first_infection], first_infection)
+
+    out <- data.frame(time=t,y=0)
+    max_t <- max(times)
+
+    no_infections <- as.integer(length(params)/6)
+
+    # Get dynamics between each infection
+    for(i in 1:no_infections){
+      # Check if this is final infection. If so, get dynamics up to end. If not, get dynamics up until next infection
+      if(i==no_infections) final_t <- max_t
+      else final_t <- params[6*(i)+1]
+
+      # Get current infection time
+      infection <- params[6*(i-1)+1]
+
+      # Generate time frame, where length is between the current and next infection
+      t <- c(times[times < final_t & times > infection], final_t)
+      t <- t-infection
+      # Starting titre is titre at time of infection as predicted by previous infection
+      y0 <- out[out$time==infection,2]
+
+      # Get parameters
+      mu <- params[6*(i-1)+2]
+      dRF <- params[6*(i-1)+3]
+      tp <- params[6*(i-1)+4]
+      ts <- params[6*(i-1)+5]
+      m <- params[6*(i-1)+6]
+
+      # Use y=mx + c model to get predictions
+      Y <- ifelse(t <= tp, (mu/tp)*t, 
+                  ifelse(t > tp & t<= ts, -(((1-dRF)*mu)/(ts-tp))*t + (((1-dRF)*mu)/(ts-tp))*tp + mu, 
+                         ifelse(t > ts, m*ts-m*t + dRF*mu,0)))
+
+      # Make into data frame. Make sure to add initial titre, y0!
+      tmp <- data.frame(time=t+infection,y=Y + y0)
+
+      out <- rbind(out, tmp)
+    }
+    return(out)
+}
+
+
+
+
+
+predict_titre_universal_m <- function(params, times){
+    m <- params[1]
+    first_infection <- params[2]
+    out <- matrix(data=c(times,rep(0,length(times))),nrow=length(times),ncol=2)
+    max_t <- times[length(times)]
+    params <- params[-1]
+    no_infections <- as.integer((length(params))/5)
+    y0 <- 0
+    
+                                        # Get dynamics between each infection
+    for(i in 1:no_infections){
+                                        # Check if this is final infection. If so, get dynamics up to end. If not, get dynamics up until next infection
+        if(i==no_infections) final_t <- max_t
+        else final_t <- params[5*(i)+1]
+
+                                        # Get current infection time
+        t_i <- params[5*(i-1)+1]
+
+                                        # Generate time frame, where length is between the current and next infection
+        t <- c(times[times <= final_t & times > t_i],final_t)
+
+                                        # Get parameters
+        mu <- params[5*(i-1)+2]
+        dRF <- params[5*(i-1)+3]
+        tp <- params[5*(i-1)+4]
+        ts <- params[5*(i-1)+5]
+
+                                        # Use y=mx + c model to get predictions
+        Y <- (((t <= (tp + t_i))*(mu/tp)*(t-t_i)) +
+              ((t > (tp + t_i))*(t <= (ts + t_i))*((-(((1-dRF)*mu)/(ts-tp))*(t-t_i) + (((1-dRF)*mu)/(ts-tp))*tp + mu))) +
+              ((t > (ts + t_i))*((m*ts-m*(t-t_i)) + (dRF*mu)))) + y0
+
+        Y[Y<0] <- 0
+        y0 <- Y[length(t)]
+        present <- out[,1] %in% t
+        
+        Y <- Y[1:length(out[present,2])]
+
+        out[present,2] <- Y
+    }
+    return(out)
+}
+
+
+# Produces model predictions from the given set of parameters between start_t and max_t. Uses ODEs to solve model
+# Takes an array of model parameters, a list of infection times; the time frame for model predictions
+# and the step size of the time frame.
+# start_t and resolution are optional parameters.
+# Returns a data frame of two columns - time against log titre
+# NOTE - the parameters are passed as an unnamed array, so must pass 5 parameters for each infection
+# Uses the model in the form y=mx + c rather than ODEs, and takes an array of times rather
+# than a start and end time. This is useful where model predictions should be much faster, and where we only need to match predictions up
+# with certain values.  
+predict.titre.fast <- function(params,times){
+    first_infection <- params[1]
+    out <- matrix(data=c(times,rep(0,length(times))),nrow=length(times),ncol=2)
+    max_t <- times[length(times)]
+    no_infections <- as.integer(length(params)/6)
+    y0 <- 0
+    
+    # Get dynamics between each infection
+    for(i in 1:no_infections){
+      # Check if this is final infection. If so, get dynamics up to end. If not, get dynamics up until next infection
+      if(i==no_infections) final_t <- max_t
+      else final_t <- params[6*(i)+1]
+
+      # Get current infection time
+      t_i <- params[6*(i-1)+1]
+
+      # Generate time frame, where length is between the current and next infection
+      t <- c(times[times <= final_t & times > t_i],final_t)
+
+      # Get parameters
+      mu <- params[6*(i-1)+2]
+      dRF <- params[6*(i-1)+3]
+      tp <- params[6*(i-1)+4]
+      ts <- params[6*(i-1)+5]
+      m <- params[6*(i-1)+6]
+
+      # Use y=mx + c model to get predictions
+      Y <- (((t <= (tp + t_i))*(mu/tp)*(t-t_i)) +
+          ((t > (tp + t_i))*(t <= (ts + t_i))*((-(((1-dRF)*mu)/(ts-tp))*(t-t_i) + (((1-dRF)*mu)/(ts-tp))*tp + mu))) +
+              ((t > (ts + t_i))*((m*ts-m*(t-t_i)) + (dRF*mu)))) + y0
+
+      Y[Y<0] <- 0
+      y0 <- Y[length(t)]
+      present <- out[,1] %in% t
+      
+      Y <- Y[1:length(out[present,2])]
+
+      out[present,2] <- Y
+  }
+    return(out)
+}

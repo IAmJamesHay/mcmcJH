@@ -3,6 +3,6 @@ Title: Generic random walk MCMC algorithm for parameter inference
 Version: 0.0.0.9000
 Authors@R: person("James", "Hay", email = "james.hay13@imperial.ac.uk", role=c("aut","cre"))
 Description: The mcmcJH package contains a set of functions that allow the user to find the posterior distribution of any generic model-generating parameter set. For example, the package was developed with the intention of finding the best set of parameters and corresponding credible intervals of a mathematical model that describes boosting and waning of adaptive immunity. The user provides a model generating function (ie. takes a set of parameters and time points and returns a matrix of the resulting trajectory), a .csv file containing information on the parameters to be fitted (eg. priors), and a .csv file containing parameters for the MCMC algorithm itself (eg. number of iterations). A Metropolis-within-Gibbs algorithm (I think...) is then used to explore the multivariate posterior; returning to the user MCMC density and iteration plots, as well as the MCMC chains themselves if necessary. 
-Depends: R (>= 3.2.0), deSolve, coda, gridExtra, ggplot2, reshape2, doParallel, truncnorm
+Depends: R (>= 3.1.3), deSolve, coda, gridExtra, ggplot2, reshape2, doParallel, truncnorm
 License: None whatsoever - good luck!
 LazyData: true
