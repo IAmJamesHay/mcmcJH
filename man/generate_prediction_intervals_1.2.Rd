@@ -16,9 +16,9 @@ generate_prediction_intervals_1.2(mcmc_chains, burnin = NULL, times,
 
 \item{runs}{number of random draws from the multivariate posterior with which to calculate the prediction intervals. Defaults to 100}
 
-\item{level}{desired prediction interval size. Defaults to 0.95 ie. 95% prediction intervals}
+\item{level}{desired prediction interval size. Defaults to 0.95 ie. 95 percent prediction intervals}
 
-\item{smoothing}{uses smoothing splines to give smoother prediction intervals where these might be aethsetically "spikey". Defaults to 0}
+\item{smoothing}{uses smoothing splines to give smoother prediction intervals where these might be aethsetically spikey. Defaults to 0}
 
 \item{MODEL_FUNCTION}{a pointer to an existing R function that is used to calculate the model trajectories}
 }

@@ -147,8 +147,8 @@ condense.data.simple <- function(data){
 #' @param burnin optional parameter specifying the number of iterations from the MCMC chain that should be discarded as burn in
 #' @param times a vector of time points to calculate the model trajectory over
 #' @param runs number of random draws from the multivariate posterior with which to calculate the prediction intervals. Defaults to 100
-#' @param level desired prediction interval size. Defaults to 0.95 ie. 95% prediction intervals
-#' @param smoothing uses smoothing splines to give smoother prediction intervals where these might be aethsetically "spikey". Defaults to 0
+#' @param level desired prediction interval size. Defaults to 0.95 ie. 95 percent prediction intervals
+#' @param smoothing uses smoothing splines to give smoother prediction intervals where these might be aethsetically spikey. Defaults to 0
 #' @param MODEL_FUNCTION a pointer to an existing R function that is used to calculate the model trajectories
 #' @return a list of the lower and upper prediction lines
 #' @seealso \code{\link{generate_prediction_intervals_1.1}}
