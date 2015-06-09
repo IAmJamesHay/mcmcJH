@@ -204,10 +204,12 @@ generate_prediction_intervals_1.2 <- function(mcmc_chains,burnin=NULL,times,runs
 #' @param all_data a data frame containing all of the original data
 #' @param MODEL_FUNCTION a pointer to an existing R function that is used to calculate the model trajectories
 #' @return a list containing the following items:
+#' \itemize{
 #' \item{model_data}{a data frame with the original data (ie. fitted) for use by a plotting function}
 #' \item{prediction_data}{a data frame with the best fitting model's data for use by a plotting function}
 #' \item{lower_prediction_bounds}{a data frame with the necessary information required to plot the lower prediction bound}
 #' \item{upper_prediction_bounds}{a data frame with the necessary information required to plot the upper prediction bound}
+#' }
 #' @seealso \code{\link{generate_prediction_intervals_1.2}}
 #' @export
 generate_prediction_intervals_1.1 <- function(results_MCMC, burnin, param_table, all_data,MODEL_FUNCTION){
