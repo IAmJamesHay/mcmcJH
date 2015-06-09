@@ -21,10 +21,10 @@ generate_prediction_intervals_1.1(results_MCMC, burnin, param_table, all_data,
 \value{
 a list containing the following items:
 \itemize{
-\item{model_data}{a data frame with the original data (ie. fitted) for use by a plotting function}
-\item{prediction_data}{a data frame with the best fitting model's data for use by a plotting function}
-\item{lower_prediction_bounds}{a data frame with the necessary information required to plot the lower prediction bound}
-\item{upper_prediction_bounds}{a data frame with the necessary information required to plot the upper prediction bound}
+\item{model_data: }{a data frame with the original data (ie. fitted) for use by a plotting function}
+\item{prediction_data: }{a data frame with the best fitting model's data for use by a plotting function}
+\item{lower_prediction_bounds: }{a data frame with the necessary information required to plot the lower prediction bound}
+\item{upper_prediction_bounds: }{a data frame with the necessary information required to plot the upper prediction bound}
 }
 }
 \description{
