@@ -2,20 +2,20 @@
 #' 
 #' Takes the table of parameters to be used for model calculation and MCMC fitting, and returns a string error if any of the inputs are invalid. The table should have the following column names:
 #' \itemize{
-#' \item{"name"}{Name of the parameter, string or character}
-#' \item{"value"}{arbritary numeric value that represents a typical value. This is not that important, it is just used for some upkeep functions}
-#' \item{"lower_bound"}{numeric value for the lower allowable bound of the parameter. This can be -Inf}
-#' \item{"upper_bound"}{numeric value for the upper allowable bound of the parameter. This can be Inf}
-#' \item{"use_logistic"}{boolean value (1/0) indicating whether or not the parameter should be logistic transformed during optimisation, ensuring that the parameter search space is between the specified bounds}
-#' \item{"use_log"}{boolean value (1/0) indicating whether parameter optimisation should be on a log scale. Note that this and use logistic should NOT both be specified}
-#' \item{"step"}{initial step size for the MCMC random walk}
-#' \item{"fixed"}{boolean value (1/0) indicating whether parameter should be fixed during MCMC/optimisation or not}
-#' \item{"nuisance"}{boolean value (1/0) indicating if parameter is a nuisance parameter}
-#' \item{"lower_seed"}{numeric value for the lower bound of the random seed generation}
-#' \item{"upper_seed"}{numeric value for the upper bound of the random seed generation}
-#' \item{"prior_func"}{this should be a string that matches the name of a function that will be used as the prior function for MCMC. This function should be available in the current R environment, or an error will be thrown. See below.}
-#' \item{"prior_args"}{a vector of default arguments for the prior function. For example, this might contain the standard deviation or mean of a normal distribution. Most prior functions have a flag to indicate log probabilities, which should be set to true by this argument}
-#' \item{"log_proposal"}{boolean flag to indicate whether proposals in the MCMC function should be made on a log or linear scale. 1 for log, 0 for linear. If in doubt, set this to 0.}
+#' \item{name: }{Name of the parameter, string or character}
+#' \item{value: }{arbritary numeric value that represents a typical value. This is not that important, it is just used for some upkeep functions}
+#' \item{lower_bound: }{numeric value for the lower allowable bound of the parameter. This can be -Inf}
+#' \item{upper_bound: }{numeric value for the upper allowable bound of the parameter. This can be Inf}
+#' \item{use_logistic: }{boolean value (1/0) indicating whether or not the parameter should be logistic transformed during optimisation, ensuring that the parameter search space is between the specified bounds}
+#' \item{use_log: }{boolean value (1/0) indicating whether parameter optimisation should be on a log scale. Note that this and use logistic should NOT both be specified}
+#' \item{step: }{initial step size for the MCMC random walk}
+#' \item{fixed: }{boolean value (1/0) indicating whether parameter should be fixed during MCMC/optimisation or not}
+#' \item{nuisance: }{boolean value (1/0) indicating if parameter is a nuisance parameter}
+#' \item{lower_seed: }{numeric value for the lower bound of the random seed generation}
+#' \item{upper_seed: }{numeric value for the upper bound of the random seed generation}
+#' \item{prior_func: }{this should be a string that matches the name of a function that will be used as the prior function for MCMC. This function should be available in the current R environment, or an error will be thrown. See below.}
+#' \item{prior_args: }{a vector of default arguments for the prior function. For example, this might contain the standard deviation or mean of a normal distribution. Most prior functions have a flag to indicate log probabilities, which should be set to true by this argument}
+#' \item{log_proposal: }{boolean flag to indicate whether proposals in the MCMC function should be made on a log or linear scale. 1 for log, 0 for linear. If in doubt, set this to 0.}
 #' }
 #' 
 #' @param param_table a data frame or matrix containing the parameters and corresponding meta-data.
@@ -65,17 +65,17 @@ param_check <- function(param_table){
 #'
 #' Takes the table of parameters for MCMC and checks for any invalid inputs. Table should have the following columns:
 #' \itemize{
-#' \item{iterations}{numeric value for the number of iterations in the MCMC algorithm}
-#' \item{opt_freq}{numeric value, specifying that the step sizes should be adapted every opt_freq iterations}
-#' \item{thin}{numeric thinning value for the MCMC chain}
-#' \item{burnin}{numeric value specifying the number of iterations to be discarded as burnin. Note that this is in addition to the adaptive period}
-#' \item{adaptive_period}{numeric value specifying the number of iterations to be discarded as the adpative period (ie. adapting step size)}
-#' \item{nchain}{number of chains to be run}
-#' \item{save_results}{currently does not have a use, but would take a value 1 or 0 to represent boolean value}
-#' \item{likelihood_function}{this should be a string that matches the name of a function available in the R environment. See the cost_functions documentation for details. Basically, this should be a function that takes the vector of parameters to be evaluated, the data to be evaluated against, the parameter table, the optimisation direction (ie. negative or positive log likelihood), and a function pointer for the model function to be evaluated}
-#' \item{model_function}{this should be a strnig that matches the name of a function in the R environment. This function will take a vector of parameters and a vector of time points, and will return the evaluated model results}
-#' \item{lower_plot_bound}{numeric value specifying the lower y bound for the model plot}
-#' \item{upper_plot_bound}{numeric value specifying the upper y bound for the model plot}
+#' \item{iterations: }{numeric value for the number of iterations in the MCMC algorithm}
+#' \item{opt_freq: }{numeric value, specifying that the step sizes should be adapted every opt_freq iterations}
+#' \item{thin: }{numeric thinning value for the MCMC chain}
+#' \item{burnin: }{numeric value specifying the number of iterations to be discarded as burnin. Note that this is in addition to the adaptive period}
+#' \item{adaptive_period: }{numeric value specifying the number of iterations to be discarded as the adpative period (ie. adapting step size)}
+#' \item{nchain: }{number of chains to be run}
+#' \item{save_results: }{currently does not have a use, but would take a value 1 or 0 to represent boolean value}
+#' \item{likelihood_function: }{this should be a string that matches the name of a function available in the R environment. See the cost_functions documentation for details. Basically, this should be a function that takes the vector of parameters to be evaluated, the data to be evaluated against, the parameter table, the optimisation direction (ie. negative or positive log likelihood), and a function pointer for the model function to be evaluated}
+#' \item{model_function: }{this should be a strnig that matches the name of a function in the R environment. This function will take a vector of parameters and a vector of time points, and will return the evaluated model results}
+#' \item{lower_plot_bound: }{numeric value specifying the lower y bound for the model plot}
+#' \item{upper_plot_bound: }{numeric value specifying the upper y bound for the model plot}
 #'}
 #' @param mcmc_params a data frame or matrix containing the parameters and corresponding meta-data
 #' @return returns a string containing an error message, or NULL if no error

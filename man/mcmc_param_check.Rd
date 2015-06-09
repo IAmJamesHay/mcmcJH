@@ -15,17 +15,17 @@ returns a string containing an error message, or NULL if no error
 \description{
 Takes the table of parameters for MCMC and checks for any invalid inputs. Table should have the following columns:
 \itemize{
-\item{iterations}{numeric value for the number of iterations in the MCMC algorithm}
-\item{opt_freq}{numeric value, specifying that the step sizes should be adapted every opt_freq iterations}
-\item{thin}{numeric thinning value for the MCMC chain}
-\item{burnin}{numeric value specifying the number of iterations to be discarded as burnin. Note that this is in addition to the adaptive period}
-\item{adaptive_period}{numeric value specifying the number of iterations to be discarded as the adpative period (ie. adapting step size)}
-\item{nchain}{number of chains to be run}
-\item{save_results}{currently does not have a use, but would take a value 1 or 0 to represent boolean value}
-\item{likelihood_function}{this should be a string that matches the name of a function available in the R environment. See the cost_functions documentation for details. Basically, this should be a function that takes the vector of parameters to be evaluated, the data to be evaluated against, the parameter table, the optimisation direction (ie. negative or positive log likelihood), and a function pointer for the model function to be evaluated}
-\item{model_function}{this should be a strnig that matches the name of a function in the R environment. This function will take a vector of parameters and a vector of time points, and will return the evaluated model results}
-\item{lower_plot_bound}{numeric value specifying the lower y bound for the model plot}
-\item{upper_plot_bound}{numeric value specifying the upper y bound for the model plot}
+\item{iterations: }{numeric value for the number of iterations in the MCMC algorithm}
+\item{opt_freq: }{numeric value, specifying that the step sizes should be adapted every opt_freq iterations}
+\item{thin: }{numeric thinning value for the MCMC chain}
+\item{burnin: }{numeric value specifying the number of iterations to be discarded as burnin. Note that this is in addition to the adaptive period}
+\item{adaptive_period: }{numeric value specifying the number of iterations to be discarded as the adpative period (ie. adapting step size)}
+\item{nchain: }{number of chains to be run}
+\item{save_results: }{currently does not have a use, but would take a value 1 or 0 to represent boolean value}
+\item{likelihood_function: }{this should be a string that matches the name of a function available in the R environment. See the cost_functions documentation for details. Basically, this should be a function that takes the vector of parameters to be evaluated, the data to be evaluated against, the parameter table, the optimisation direction (ie. negative or positive log likelihood), and a function pointer for the model function to be evaluated}
+\item{model_function: }{this should be a strnig that matches the name of a function in the R environment. This function will take a vector of parameters and a vector of time points, and will return the evaluated model results}
+\item{lower_plot_bound: }{numeric value specifying the lower y bound for the model plot}
+\item{upper_plot_bound: }{numeric value specifying the upper y bound for the model plot}
 }
 }
 \seealso{
