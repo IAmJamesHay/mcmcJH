@@ -14,7 +14,8 @@ a data frame containing the formatted data imported from the given .csv file
 }
 \description{
 Reads in a .csv file to generate a table of parameter data for use in MCMC. The table should be have the following columns:
- \item{name: }{Name of the parameter (string/character)}
+\itemize{
+\item{name: }{Name of the parameter (string/character)}
 \item{value: }{arbritary numeric value that represents a typical value (this is not that important - it is just used for some upkeep functions)}
 \item{lower_bound: }{numeric value for the lower allowable bound of the parameter (this can be -Inf)}
 \item{upper_bound: }{numeric value for the upper allowable bound of the parameter (this can be Inf)}
@@ -28,6 +29,7 @@ Reads in a .csv file to generate a table of parameter data for use in MCMC. The 
 \item{prior_func: }{this should be a string that matches the name of a function that will be used as the prior function for MCMC. This function should be available in the current R environment, or an error will be thrown. See below.}
 \item{prior_args: }{a vector of default arguments for the prior function. For example, this might contain the standard deviation or mean of a normal distribution. Most prior functions have a flag to indicate log probabilities, which should be set to true by this argument}
 \item{log_proposal: }{boolean flag to indicate whether proposals in the MCMC function should be made on a log or linear scale (1 for log, 0 for linear). If in doubt, set this to 0.}
+}
 }
 \seealso{
 \code{\link{param_check}}
