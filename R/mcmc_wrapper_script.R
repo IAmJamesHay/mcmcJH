@@ -178,7 +178,7 @@ MCMC_fit_1.1 <- function(top_dir,
    # We will then fit the model to each strain
     number_strains <- unique(all_data$strain)
 
-    results_MCMC <- foreach(i=1:length(number_strains)) %dopar%{
+    results_MCMC <- foreach(i=1:length(number_strains)..packages='mcmcJH') %dopar%{
         # Get subset of data
         temp_dat <- all_data[all_data$group == group & all_data$strain == number_strains[i], c("variable","value")]
         
@@ -438,7 +438,7 @@ MCMC_fit_single <- function(data,
     }
     
     if(PARALLEL){
-        tmp_chains <- foreach(i=1:nchain) %dopar%{
+        tmp_chains <- foreach(i=1:nchain, .packages='mcmcJH') %dopar%{
             x <- paste(getwd(), "/", run_metropolis_MCMC(startvalue=rand.params(param_table),
                                                          iterations=iterations,
                                                          data=data,
