@@ -8,7 +8,7 @@ MCMC_fit_1.2(temp_dat, param_table, iterations = 1000, opt_freq = 50,
   thin = 1, burnin = 100, adaptive_period = 1, nchain = 1,
   popt = 0.44, filename, LIKELIHOOD_FUNCTION, MODEL_FUNCTION,
   VERBOSE = FALSE, PARALLEL = FALSE, OPTIM_PARAMS = FALSE,
-  topdir = "~/tmp/")
+  topdir = paste(getwd(), "/tmp/", sep = ""))
 }
 \arguments{
 \item{temp_dat}{the data over which to calculate likelihoods}

@@ -265,7 +265,7 @@ MCMC_fit_1.2 <- function(temp_dat,
                          VERBOSE=FALSE,
                          PARALLEL=FALSE,
                          OPTIM_PARAMS=FALSE,
-                         topdir="~/tmp/"
+                         topdir=paste(getwd(),"/tmp/",sep="")
 ){
     # Set up quicker tables
     # Turns the data frame table into a matrix that can allow faster indexing
