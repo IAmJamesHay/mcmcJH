@@ -204,7 +204,7 @@ MCMC_fit_1.1 <- function(top_dir,
                               LIKELIHOOD_FUNCTION,
                               MODEL_FUNCTION,
                               VERBOSE,
-                              paste(top_dir,"/tmp",sep="")
+                              topdir=paste(top_dir,"/tmp",sep="")
                               )
     }
     # Fairly elaborate way of generation 95% prediction intervals. Probably room for improvement...
