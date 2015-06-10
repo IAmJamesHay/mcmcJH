@@ -18,14 +18,15 @@ titre_model <- function(t, x, params){
 }
 
 
+
 #' Ferret model function with lower bounded titres
 #'
-#' Uses the Ferret boost/wane model in the form y=mx+c to produce a matrix of model results from a given vector of parameters. This particular version allows the titres to be truncated frombelow, with the first argument of the parameter vector providing the lower bound
+#' Uses the Ferret boost/wane model in the form y=mx+c to produce a matrix of model results from a given vector of parameters. This particular version allows the titres to be truncated from below, with the first argument of the parameter vector providing the lower bound
 #' @param params the vector of parameters used to solve the model. The first argument should be the lower titre bound
 #' @param times a vector of times over which to solve the model. If in doubt, use a sequence from 0 to max time at steps of 1
 #' @return a matrix containing the titre values predicted from the given parameters at each time point specified by times
 #' @export
-#' @seealso \code{\link{predict.titre.fast}}
+#' @seealso \code{\link{predict.titre.fast.bounded}}, \code{\link{predict.titre.fast}}, \code{\link{predict_titre_universal_m_2}}, \code{\link{predict_titre_universal_m}}
 predict.titre.fast.bounded <- function(params,times){
     trunc_lower <- params[1]
     params <- params[-1]
@@ -71,9 +72,14 @@ predict.titre.fast.bounded <- function(params,times){
 }
 
 
-
-
-
+#' Ferret model function with lower bounded titres and a universal waning parameter, m
+#'
+#' Uses the Ferret boost/wane model in the form y=mx+c to produce a matrix of model results from a given vector of parameters. This particular version allows the titres to be truncated from below, and a universal waning parameter, m. The first argument should be m, and  the second argument of the parameter vector should provide the lower bound
+#' @param params the vector of parameters used to solve the model. The first argument should be m, and the second argument the lower titre bound
+#' @param times a vector of times over which to solve the model. If in doubt, use a sequence from 0 to max time at steps of 1
+#' @return a matrix containing the titre values predicted from the given parameters at each time point specified by times
+#' @export
+#' @seealso \code{\link{predict.titre.fast.bounded}}, \code{\link{predict.titre.fast}}, \code{\link{predict_titre_universal_m_2}}, \code{\link{predict_titre_universal_m}}
 predict_titre_universal_m_2<- function(params, times){
     m <- params[1]
     trunc_lower <- params[2]
@@ -119,9 +125,10 @@ predict_titre_universal_m_2<- function(params, times){
     return(out)
 }
 
-
-
-
+#' Old titre prediction function
+#'
+#' No longer active - this used ODEs rather than y=mx+c which was much too slow
+#' @seealso \code{\link{predict.titre.fast.bounded}}, \code{\link{predict.titre.fast}}, \code{\link{predict_titre_universal_m_2}}, \code{\link{predict_titre_universal_m}}
 predict.titre.OLD <- function(params,times){
     first_infection <- params[1]
     t <- c(times[times < first_infection], first_infection)
@@ -168,8 +175,14 @@ predict.titre.OLD <- function(params,times){
 
 
 
-
-
+#' Ferret model function with a universal waning parameter, m
+#'
+#' Uses the Ferret boost/wane model in the form y=mx+c to produce a matrix of model results from a given vector of parameters. This particular version allows a universal waning parameter, m. The first argument should be m
+#' @param params the vector of parameters used to solve the model. The first argument should be m
+#' @param times a vector of times over which to solve the model. If in doubt, use a sequence from 0 to max time at steps of 1
+#' @return a matrix containing the titre values predicted from the given parameters at each time point specified by times
+#' @export
+#' @seealso \code{\link{predict.titre.fast.bounded}}, \code{\link{predict.titre.fast}}, \code{\link{predict_titre_universal_m_2}}, \code{\link{predict_titre_universal_m}}
 predict_titre_universal_m <- function(params, times){
     m <- params[1]
     first_infection <- params[2]
@@ -213,16 +226,14 @@ predict_titre_universal_m <- function(params, times){
     return(out)
 }
 
-
-# Produces model predictions from the given set of parameters between start_t and max_t. Uses ODEs to solve model
-# Takes an array of model parameters, a list of infection times; the time frame for model predictions
-# and the step size of the time frame.
-# start_t and resolution are optional parameters.
-# Returns a data frame of two columns - time against log titre
-# NOTE - the parameters are passed as an unnamed array, so must pass 5 parameters for each infection
-# Uses the model in the form y=mx + c rather than ODEs, and takes an array of times rather
-# than a start and end time. This is useful where model predictions should be much faster, and where we only need to match predictions up
-# with certain values.  
+#' Basic ferret model function
+#'
+#' Uses the Ferret boost/wane model in the form y=mx+c to produce a matrix of model results from a given vector of parameters. 
+#' @param params the vector of parameters used to solve the model. The first argument should be the lower titre bound first infection time
+#' @param times a vector of times over which to solve the model. If in doubt, use a sequence from 0 to max time at steps of 1
+#' @return a matrix containing the titre values predicted from the given parameters at each time point specified by times
+#' @export
+#' @seealso \code{\link{predict.titre.fast.bounded}}, \code{\link{predict.titre.fast}}, \code{\link{predict_titre_universal_m_2}}, \code{\link{predict_titre_universal_m}}
 predict.titre.fast <- function(params,times){
     first_infection <- params[1]
     out <- matrix(data=c(times,rep(0,length(times))),nrow=length(times),ncol=2)

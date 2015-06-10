@@ -1,0 +1,216 @@
+# Function to produce a plot of the given model and data. Takes the group name to be used as a file name. Also optionally takes the
+# lower and upper bounds, the plot title, and a list of infection times.
+plot_model_fits <- function(model_data, actual_data, group,plot_bounds,lower=NULL,upper=NULL,infection_times=NULL,plot_title=NULL){
+    # Plot bounds
+    low <- plot_bounds[1]
+    high <- plot_bounds[2]
+ 
+    # Filename - might need to change file type
+    filename <- paste(group,"_fit.pdf",sep="")
+
+    title <- ""
+    if(!is.null(plot_title)){
+        title <- plot_title
+    }
+    
+    # Just check that model data is in correct range.
+    model_data$value[model_data$value < low] <- low
+    model_data$value[model_data$value > high] <- high
+
+    xscale <- c(0,21,37,49,70, infection_times$time)
+    xlabels <- c("0","21","37","49","70",paste("\n\n",infection_times$infection,sep=""))
+    xlabel_colours <- c(rep("gray20",5),rep("red",nrow(infection_times)))
+    xlabel_sizes <- c(rep(14,5),rep(10,nrow(infection_times)))
+    
+                                        # Get base plot
+    plot <- ggplot() +
+        scale_fill_brewer(palette="Dark2") +
+            scale_colour_brewer(palette="Dark2") + 
+                geom_point(data=actual_data,aes(x=variable,y=value,fill=strain,colour=strain,ymax=13),size=4,position=position_jitter(w=0.5,h=0.1)) + 
+                    geom_line(data=model_data,aes(x=variable,y=value,fill=strain,colour=strain),size=0.8) +
+                        xlab("Time (days)") +
+                            scale_y_continuous(breaks=seq(low,high,by=1),limits=c(low,high),expand=c(0,0))+
+                                ylab("Log Titre") +
+                                    ggtitle(title)+
+                                        theme(
+                                            legend.justification=c(0,1),
+                                            legend.position=c(0,1),
+                                            text=element_text(size=16,colour="gray20"),
+                                            plot.title=element_text(size=28),
+                                            legend.text=element_text(size=14,colour="gray20"),
+                                            panel.grid.major = element_blank(),
+                                            panel.grid.minor = element_blank(),
+                                            axis.line=element_line(colour="gray20"),
+                                            axis.line.x = element_line(colour = "gray20"),
+                                            axis.line.y=element_line(colour="gray20"),
+                                            axis.text.x=element_text(colour=xlabel_colours,size=xlabel_sizes),
+                                            plot.margin=unit(c(0.5,1,0.5,0.5),"cm"),
+                                            panel.background=element_blank(),
+                                            axis.text.y=element_text(colour="gray20",size=14))+
+                                                scale_x_continuous(breaks=xscale,labels=xlabels)
+                                              
+    # If specified, add vertical lines for infection times
+    if(!is.null(infection_times)){
+        for(i in 1:nrow(infection_times)){
+            plot <- plot + geom_vline(xintercept=infection_times[i,"time"],colour="red",linetype="longdash",angle="90")
+        }
+        #plot <- plot +  annotate("text",x=(infection_times$time),y=15,label=infection_times$infection,hjust=0,color="red",size=4)
+    }
+
+    # If specified, constrain passed bounds and add as polygon to the plot
+    if(!is.null(lower) & !is.null(upper)){
+        lower <- restrain_bounds(lower,low,high)
+        upper <- restrain_bounds(upper,low,high)
+        bounds <- create_polygons(lower,upper)
+        plot <- plot + geom_polygon(data=bounds,aes(x=x,y=y,fill=strain),alpha=0.2)
+    }
+
+    # Saves the plot as the specified file. DPI SHOULD BE CHANGED IF FILE IS TOO BIG
+    ggsave(plot=plot,filename=filename, width=14, height=10)
+    return(plot)
+}
+
+
+# Takes upper and lower bounds as data frames and uses these to produce a polygon for
+# ggplot. The idea here is simply to combine the two bounds into a single set of coordinates. Note
+# that this function expects a LIST of bounds (ie. a different polygon for each index in the list),
+# so a single polygon should come from lower[[1]] and upper[[1]]
+create_polygons <- function(lower,upper){
+    bounds <- NULL
+    for(i in 1:length(upper)){
+            if(length(upper) > 0 & length(lower) > 0){
+                tmp <- as.data.frame(upper[[i]])
+                tmp <- tmp[rev(rownames(tmp)),]
+                tmp1 <- rbind(as.data.frame(lower[[i]]),tmp)
+                bounds <- rbind(bounds, tmp1)
+            }
+        }
+    colnames(bounds) <- c("x","y","strain","group")
+    return(bounds)    
+}
+
+
+# Takes a list of data frames (ie. titre data) and makes sure that all y values are between
+# lower and upper
+restrain_bounds <- function(dat, lower, upper){
+    for(j in 1:length(dat)){
+        tmp <- dat[[j]]$y
+        for(i in 1:length(tmp)){
+            if(tmp[i] < lower){
+                tmp[i] <- lower
+            }
+            else if(tmp[i] > upper){
+                tmp[i] <- upper
+            }
+        }
+        dat[[j]]$y <- tmp
+    }
+    return(dat)
+}
+
+mcmc_density_multi <- function(name, data, xlims, prior=NULL){
+    q <- ggplot(data[data$variable==name,],aes(x=value,fill=chain,group=chain,y=..density..)) + geom_density(size=1,alpha=0.5) + ggtitle(paste(name, " Density Plot", sep="")) + scale_x_continuous(limits=xlims)
+    if(!is.null(prior)){
+        prior <- rbind(c(xlims[1],0.0,"prior"),prior,c(xlims[2],0,"prior"))
+        prior$variable <- as.numeric(prior$variable)
+        prior$value <- as.numeric(prior$value)
+        q <- q + geom_polygon(data=prior, aes(x=variable, y=value,fill="prior"),alpha=0.5,size=1,color="black")
+    }
+    return(q)
+}
+
+mcmc_iter_multi <- function(name, data,burnin){
+    tmp_dat <- data[,c("iteration",name,"chain")]
+    colnames(tmp_dat) <- c("iteration","value","chain")
+    q <- ggplot(tmp_dat,aes(x=iteration,y=value,colour=chain)) + geom_line() + ggtitle(paste(name, " Iter Plot",sep="")) + geom_vline(xintercept=burnin, colour="green", linetype="longdash")
+}
+
+generate_prior_data <- function(names, param_table){
+    prior_dat <- NULL
+    to_check <- which(param_table$fixed==0)
+    for(i in 1:length(to_check)){
+        lower_lim <- param_table[to_check[i],"lower_bound"]
+        upper_lim <- param_table[to_check[i],"upper_bound"]
+        tmp <- NULL
+        samples <- seq(lower_lim, upper_lim, by=((upper_lim-lower_lim)/100))
+        tmp_pars <- param_table$value
+        for(j in 1:length(samples)){
+            tmp_pars[to_check[i]] <- samples[j]
+            tmp[j] <- prior_wrapper(param_table$prior_func[[to_check[i]]], tmp_pars, to_check[i], param_table$prior_args[[to_check[i]]])
+        }
+        if(sum(tmp) > 1 | sum(tmp) < 0){
+            tmp <- exp(tmp)
+        }
+        tmp <- data.frame(variable=samples,value=tmp, param=param_table$names[to_check[i]],chain="prior")
+        prior_dat <- rbind(prior_dat, tmp)
+    }
+    return(prior_dat)
+}
+
+
+mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=NULL){
+    tmp_filename <- paste(filename, "_MCMC_plots.pdf", sep="")
+
+    # For iter
+    tmp_all <- NULL
+    for(i in 1:length(mcmc_chains)){
+        tmp <- as.data.frame(mcmc_chains[[i]])
+        colnames(tmp)[1] <- "iteration"
+        tmp$chain <- as.character(i)
+        tmp_all <- rbind(tmp_all, tmp)
+    }
+
+    if(!is.null(param_table)){
+       # Generate data for prior plots
+        prior_dat <- generate_prior_data(colnames(mcmc_chains[[1]]),param_table)
+    }
+        
+    # For densities
+    melted <- NULL
+    for(i in 1:length(mcmc_chains)){
+        tmp <- as.data.frame(mcmc_chains[[i]])
+        tmp_melt <- melt(tmp)
+        tmp_melt$chain <- as.character(i)
+        melted <- rbind(melted, tmp_melt)
+    }
+
+    pdf(tmp_filename, height=6,width=16)
+    for(i in 2:ncol(mcmc_chains[[1]])){
+        print(suppressWarnings(grid.arrange(
+            mcmc_iter_multi(colnames(mcmc_chains[[1]])[i],tmp_all,burnin),
+            mcmc_density_multi(colnames(mcmc_chains[[1]])[i],melted,
+                               c(param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"lower_bound"],param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"upper_bound"]),
+                               prior_dat[prior_dat$param==colnames(mcmc_chains[[1]])[i],c("variable","value","chain")]
+                               )
+            ,ncol=2)))
+    }
+    dev.off()
+}
+
+
+mcmc_density_single <- function(name,data){
+    q <- ggplot(data[data$variable==name,],aes(x=value)) + geom_histogram(aes(y=..density..),fill="deepskyblue") + geom_density(alpha=1,colour="black",size=1) + ggtitle(paste(name, " Density Plot", sep=""))
+    return(q)
+}
+
+
+mcmc_iter_single <- function(name, data){
+    tmp_dat<- data.frame(value = data,iteration=seq(1,length(data),by=1))
+    q <- ggplot(tmp_dat,aes(x=iteration,y=value),colour="deepskyblue") + geom_line(colour="deepskyblue") + ggtitle(paste(name," Iter Plot", sep=""))
+    return(q)
+}
+
+mcmc_all_plots_single <- function(filename, mcmc_chain){
+    tmp_filename <- paste(filename, "_MCMC_plots.pdf",sep="")
+    tmp_dat <- mcmc_chain
+    tmp_melt <- melt(tmp_dat)
+    
+    pdf(tmp_filename,height=5,width=12)
+    
+    for(i in 1:ncol(mcmc_chain)){
+        print(suppressWarnings(grid.arrange(mcmc_iter_single(colnames(tmp_dat)[i],tmp_dat[,i]), mcmc_density_single(colnames(tmp_dat)[i],tmp_melt),ncol=2)))
+    }
+    dev.off()
+}
+
+
