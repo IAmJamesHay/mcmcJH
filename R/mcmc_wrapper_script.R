@@ -172,13 +172,12 @@ MCMC_fit_1.1 <- function(top_dir,
     # Get in top level working directory, and then create/move into this group's directory
     setwd(top_dir)
     dir.create(group,showWarnings=FALSE)
-    setwd(group)
-    
     results_MCMC <- NULL
    # We will then fit the model to each strain
     number_strains <- unique(all_data$strain)
-
+    
     results_MCMC <- foreach(i=1:length(number_strains),.packages='mcmcJH') %dopar%{
+        setwd(group)
         # Get subset of data
         temp_dat <- all_data[all_data$group == group & all_data$strain == number_strains[i], c("variable","value")]
         
@@ -205,6 +204,7 @@ MCMC_fit_1.1 <- function(top_dir,
                               LIKELIHOOD_FUNCTION,
                               MODEL_FUNCTION,
                               VERBOSE,
+                              paste(topdir,"/tmp",sep="")
                               )
     }
     # Fairly elaborate way of generation 95% prediction intervals. Probably room for improvement...
