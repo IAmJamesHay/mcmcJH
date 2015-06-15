@@ -52,14 +52,28 @@ predict.titre.fast.bounded <- function(params,times){
       mu <- params[6*(i-1)+2]
       dRF <- params[6*(i-1)+3]
       tp <- params[6*(i-1)+4]
-      ts <- params[6*(i-1)+5] + tp
+      ts <- params[6*(i-1)+5]
       m <- params[6*(i-1)+6]
 
-      # Use y=mx + c model to get predictions
-      Y <- (((t <= (tp + t_i))*(mu/tp)*(t-t_i)) +
-          ((t > (tp + t_i))*(t <= (ts + t_i))*((-(((1-dRF)*mu)/(ts-tp))*(t-t_i) + (((1-dRF)*mu)/(ts-tp))*tp + mu))) +
-              ((t > (ts + t_i))*((m*ts-m*(t-t_i)) + (dRF*mu)))) + y0
+      #' Use y=mx + c model to get predictions
+      Y <-(
+          (t <= t_i)*0
+          ) +
+              (
+                  (t > t_i)*(t <= (tp + t_i))*((mu/tp)*t-(mu/tp)*t_i)
+                  ) +
+                      (
+                          (t > (tp + t_i))*(t <= (ts + tp + t_i))*((-(dRF*mu)/ts)*t+((mu*dRF)/ts)*(t_i+tp) + mu)
+                          ) +
+                              (
+                                  (t > (ts + tp + t_i))*(-m*t+m*(t_i+tp+ts)+(1-dRF)*mu)
+                                  ) + y0
+      
+      #'Y <- (((t <= (tp + t_i))*(mu/tp)*(t-t_i)) +
+      #'   ((t > (tp + t_i))*(t <= (ts + t_i))*((-(((1-dRF)*mu)/(ts-tp))*(t-t_i) + (((1-dRF)*mu)/(ts-tp))*tp + mu))) +
+      #' ((t > (ts + t_i))*((m*ts-m*(t-t_i)) + (dRF*mu)))) + y0
 
+      
       Y[Y<trunc_lower] <- trunc_lower
       y0 <- Y[length(t)]
       present <- out[,1] %in% t
@@ -107,12 +121,26 @@ predict_titre_universal_m_2<- function(params, times){
         mu <- params[5*(i-1)+2]
         dRF <- params[5*(i-1)+3]
         tp <- params[5*(i-1)+4]
-        ts <- params[5*(i-1)+5] + tp
+        ts <- params[5*(i-1)+5]
 
-                                        # Use y=mx + c model to get predictions
-        Y <- (((t <= (tp + t_i))*(mu/tp)*(t-t_i)) +
-              ((t > (tp + t_i))*(t <= (ts + t_i))*((-(((1-dRF)*mu)/(ts-tp))*(t-t_i) + (((1-dRF)*mu)/(ts-tp))*tp + mu))) +
-              ((t > (ts + t_i))*((m*ts-m*(t-t_i)) + (dRF*mu)))) + y0
+        #' Use y=mx + c model to get predictions
+        Y <-(
+            (t <= t_i)*0
+            ) +
+                (
+                    (t > t_i)*(t <= (tp + t_i))*((mu/tp)*t-(mu/tp)*t_i)
+                    ) +
+                        (
+                            (t > (tp + t_i))*(t <= (ts + tp + t_i))*((-(dRF*mu)/ts)*t+((mu*dRF)/ts)*(t_i+tp) + mu)
+                            ) +
+                                (
+                                    (t > (ts + tp + t_i))*(-m*t+m*(t_i+tp+ts)+(1-dRF)*mu)
+                                    ) + y0
+        
+        #'Y <- (((t <= (tp + t_i))*(mu/tp)*(t-t_i)) +
+        #'   ((t > (tp + t_i))*(t <= (ts + t_i))*((-(((1-dRF)*mu)/(ts-tp))*(t-t_i) + (((1-dRF)*mu)/(ts-tp))*tp + mu))) +
+        #' ((t > (ts + t_i))*((m*ts-m*(t-t_i)) + (dRF*mu)))) + y0
+
 
         Y[Y<trunc_lower] <- trunc_lower
         y0 <- Y[length(t)]
@@ -160,6 +188,7 @@ predict.titre.OLD <- function(params,times){
       ts <- params[6*(i-1)+5]
       m <- params[6*(i-1)+6]
 
+      
       # Use y=mx + c model to get predictions
       Y <- ifelse(t <= tp, (mu/tp)*t, 
                   ifelse(t > tp & t<= ts, -(((1-dRF)*mu)/(ts-tp))*t + (((1-dRF)*mu)/(ts-tp))*tp + mu, 
@@ -210,10 +239,23 @@ predict_titre_universal_m <- function(params, times){
         tp <- params[5*(i-1)+4]
         ts <- params[5*(i-1)+5]
 
-                                        # Use y=mx + c model to get predictions
-        Y <- (((t <= (tp + t_i))*(mu/tp)*(t-t_i)) +
-              ((t > (tp + t_i))*(t <= (ts + t_i))*((-(((1-dRF)*mu)/(ts-tp))*(t-t_i) + (((1-dRF)*mu)/(ts-tp))*tp + mu))) +
-              ((t > (ts + t_i))*((m*ts-m*(t-t_i)) + (dRF*mu)))) + y0
+        #' Use y=mx + c model to get predictions
+        Y <-(
+            (t <= t_i)*0
+            ) +
+                (
+                    (t > t_i)*(t <= (tp + t_i))*((mu/tp)*t-(mu/tp)*t_i)
+                    ) +
+                        (
+                            (t > (tp + t_i))*(t <= (ts + tp + t_i))*((-(dRF*mu)/ts)*t+((mu*dRF)/ts)*(t_i+tp) + mu)
+                            ) +
+                                (
+                                    (t > (ts + tp + t_i))*(-m*t+m*(t_i+tp+ts)+(1-dRF)*mu)
+                                    ) + y0
+        
+        #'Y <- (((t <= (tp + t_i))*(mu/tp)*(t-t_i)) +
+        #'   ((t > (tp + t_i))*(t <= (ts + t_i))*((-(((1-dRF)*mu)/(ts-tp))*(t-t_i) + (((1-dRF)*mu)/(ts-tp))*tp + mu))) +
+        #' ((t > (ts + t_i))*((m*ts-m*(t-t_i)) + (dRF*mu)))) + y0
 
         Y[Y<0] <- 0
         y0 <- Y[length(t)]
@@ -259,11 +301,25 @@ predict.titre.fast <- function(params,times){
       tp <- params[6*(i-1)+4]
       ts <- params[6*(i-1)+5]
       m <- params[6*(i-1)+6]
-
-      # Use y=mx + c model to get predictions
-      Y <- (((t <= (tp + t_i))*(mu/tp)*(t-t_i)) +
-          ((t > (tp + t_i))*(t <= (ts + t_i))*((-(((1-dRF)*mu)/(ts-tp))*(t-t_i) + (((1-dRF)*mu)/(ts-tp))*tp + mu))) +
-              ((t > (ts + t_i))*((m*ts-m*(t-t_i)) + (dRF*mu)))) + y0
+      
+      #' Use y=mx + c model to get predictions
+      Y <-(
+          (t <= t_i)*0
+          ) +
+              (
+                  (t > t_i)*(t <= (tp + t_i))*((mu/tp)*t-(mu/tp)*t_i)
+                  ) +
+                      (
+                          (t > (tp + t_i))*(t <= (ts + tp + t_i))*((-(dRF*mu)/ts)*t+((mu*dRF)/ts)*(t_i+tp) + mu)
+                          ) +
+                              (
+                                  (t > (ts + tp + t_i))*(-m*t+m*(t_i+tp+ts)+(1-dRF)*mu)
+                                  ) + y0
+      
+      #'Y <- (((t <= (tp + t_i))*(mu/tp)*(t-t_i)) +
+      #'   ((t > (tp + t_i))*(t <= (ts + t_i))*((-(((1-dRF)*mu)/(ts-tp))*(t-t_i) + (((1-dRF)*mu)/(ts-tp))*tp + mu))) +
+      #' ((t > (ts + t_i))*((m*ts-m*(t-t_i)) + (dRF*mu)))) + y0
+      
 
       Y[Y<0] <- 0
       y0 <- Y[length(t)]
