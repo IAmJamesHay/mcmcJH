@@ -154,14 +154,14 @@ mcmc_density_multi <- function(name, data, xlims, prior=NULL,best_fits=NULL){
     
     q <- ggplot(data[data$variable==name,],aes(x=value,fill=chain,group=chain,y=..density..)) + geom_density(size=1,alpha=0.5) + ggtitle(paste(name, " Density Plot", sep="")) + scale_x_continuous(limits=xlims) +
         geom_vline(xintercept=mean_line,colour="red") +
-#            geom_text(aes(x=mean_line,label="Mean",y=max(z$y/2)),colour="red",angle=90,text=element_text(size=8)) +
-                geom_vline(xintercept=mode_line,colour="blue")
-  #                  geom_text(aes(x=mode_line,label="Mode",y=max(z$y/2)),colour="blue",angle=90,text=element_text(size=8))
+            geom_text_q(aes(x=mean_line,label="Mean",y=max(z$y/2)),colour="red",angle=90,text=element_text(size=8)) +
+                geom_vline(xintercept=mode_line,colour="blue") +
+                    geom_text(aes_q(x=mode_line,label="Mode",y=max(z$y/2)),colour="blue",angle=90,text=element_text(size=8))
     print("Initial plot")
     if(!is.null(best_fits)){
         mle_line <- as.numeric(best_fits[which(names(best_fits)==name)])
-        q <- q + geom_vline(xintercept=mle_line,colour="purple")
-    #                geom_text(aes(x=mle_line,label="MLE",y=max(z$y/2)),colour="purple",angle=90,text=element_text(size=8))
+        q <- q + geom_vline(xintercept=mle_line,colour="purple") +
+                    geom_text(aes_q(x=mle_line,label="MLE",y=max(z$y/2)),colour="purple",angle=90,text=element_text(size=8))
         print("optional plot")
     }
     if(!is.null(prior)){
