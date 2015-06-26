@@ -226,7 +226,7 @@ generate_prior_data <- function(names, param_table){
 #' @return nothing
 #' @export
 #' @seealso \code{\link{mcmc_iter_multi}}, \code{\link{mcmc_density_multi}}, \code{\link{mcmc_density_single}}, \code{\link{mcmc_iter_single}}
-mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=NULL){
+mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=NULL,best_fit=NULL){
     tmp_filename <- paste(filename, "_MCMC_plots.pdf", sep="")
 
     # For iter
@@ -243,10 +243,6 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
        # Generate data for prior plots
         prior_dat <- generate_prior_data(colnames(mcmc_chains[[1]]),param_table)
     }
-    print("before gettnig MLE")
-    print(colnames(tmp_all))
-    best_fit <- tmp_all[which.max(tmp_all[,"lnlike"])]
-    print("Post getting MLE")
     print(best_fit)
     # For densities
     melted <- NULL
