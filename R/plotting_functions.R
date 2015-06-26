@@ -146,8 +146,10 @@ mcmc_density_multi <- function(name, data, xlims, prior=NULL,best_fits=NULL){
     z <- density(dat[,2])
     print("DEnsity calculated")
     mean_line <- mean(dat[,2])
+    print(mean_line)
     print("Mean calculated")
     mode_line <- z$x[which.max(z$y)]
+    print(mode_line)
     print("Mode calculated")
     
     q <- ggplot(data[data$variable==name,],aes(x=value,fill=chain,group=chain,y=..density..)) + geom_density(size=1,alpha=0.5) + ggtitle(paste(name, " Density Plot", sep="")) + scale_x_continuous(limits=xlims) +
