@@ -501,20 +501,16 @@ MCMC_fit_single <- function(data,
     #' Use the rbound chain to get density estimates and therefore modes
     colnames(tmp_big_chain) <- colnames(final_chains[[i]])
 
-    mode_pars <- NULL
-    print(tmp_big_chain[1:10,])
+    modal_pars <- NULL
+
     for(index in 1:ncol(tmp_big_chain)){
         tmp_den <- tmp_big_chain[,index]
-        print(tmp_den[1:10])
         z <- density(tmp_den)
         
         mode_par <- z$x[which.max(z$y)]
-        print("best par:")
-        print(mode_par)
-        mode_pars[index] <- mode_par
+        modal_pars[index] <- mode_par
     }
-    print("mode params:")
-    print(mode_pars)
+
     # Convert results to returnable format
     combined_mcmc <- as.mcmc.list(final_chains)
     mcmc_summary <- summary(combined_mcmc)
@@ -527,6 +523,6 @@ MCMC_fit_single <- function(data,
         }
     }
     
-    return(list(chains=final_chains,summary=mcmc_summary,files=tmp_chains,params=best_pars, mode_params=mode_pars))
+    return(list(chains=final_chains,summary=mcmc_summary,files=tmp_chains,params=best_pars, mode_params=modal_pars))
 }
 
