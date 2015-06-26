@@ -509,6 +509,8 @@ MCMC_fit_single <- function(data,
         z <- density(tmp_den)
         
         mode_par <- z$x[which.max(z$y)]
+        print("best par:")
+        print(mode_par)
         mode_pars[index] <- mode_par
     }
     print("mode params:")
