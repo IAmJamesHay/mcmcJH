@@ -243,8 +243,8 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
         prior_dat <- generate_prior_data(colnames(mcmc_chains[[1]]),param_table)
     }
     print("before gettnig MLE")
-    best_fit <- tmp_all[which.max(tmp_all[,ncol(tmp_all)])]
-   print("Post getting MLE")
+    best_fit <- tmp_all[which.max(tmp_all[,"lnlike"])]
+    print("Post getting MLE")
     print(best_fit)
     # For densities
     melted <- NULL
