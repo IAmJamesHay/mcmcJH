@@ -237,12 +237,14 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
         tmp$chain <- as.character(i)
         tmp_all <- rbind(tmp_all, tmp)
     }
+    colnames(tmp_all) <- colnames(tmp)
 
     if(!is.null(param_table)){
        # Generate data for prior plots
         prior_dat <- generate_prior_data(colnames(mcmc_chains[[1]]),param_table)
     }
     print("before gettnig MLE")
+    print(colnames(tmp_all))
     best_fit <- tmp_all[which.max(tmp_all[,"lnlike"])]
     print("Post getting MLE")
     print(best_fit)
