@@ -502,9 +502,12 @@ MCMC_fit_single <- function(data,
     colnames(tmp_big_chain) <- colnames(final_chains[[i]])
 
     mode_pars <- NULL
+    print(tmp_big_chain[1:10,])
     for(index in 1:ncol(tmp_big_chain)){
         tmp_den <- tmp_big_chain[,index]
+        print(tmp_den[1:10])
         z <- density(tmp_den)
+        
         mode_par <- z$x[which.max(z$y)]
         mode_pars[index] <- mode_par
     }
