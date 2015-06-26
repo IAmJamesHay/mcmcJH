@@ -189,7 +189,7 @@ mcmc_iter_multi <- function(name, data,burnin,best_fit=NULL){
                 geom_hline(yintercept=mode_line,colour="blue") +
                     geom_text(aes_q(y=mode_line,label="\nMode",x=max(z$x/2)),colour="blue",angle=90,text=element_text(size=6))
     if(!is.null(best_fit)) {
-        mle_line <- as.numeric(best_fits[which(names(best_fits)==name)])
+        mle_line <- as.numeric(best_fit[which(names(best_fit)==name)])
         q <- q + geom_hline(yintercept=mle_line,colour="purple") +            
             geom_text(aes_q(y=mle_line,label="\nMLE",x=max(z$x/2)),colour="purple",angle=90,text=element_text(size=6))
     }
