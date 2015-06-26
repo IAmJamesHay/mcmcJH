@@ -141,21 +141,26 @@ restrain_bounds <- function(dat, lower, upper){
 #' @export
 #' @seealso \code{\link{mcmc_all_plots_mcmc}}
 mcmc_density_multi <- function(name, data, xlims, prior=NULL,best_fits=NULL){
+    print("In MCMC density call")
     dat <- data[data$variable==name,]
-    z <- density(dat)
+    z <- density(dat[,2])
+    print("DEnsity calculated")
     mean_line <- mean(dat[,2])
+    print("Mean calculated")
     mode_line <- z$x[which.max(z$y)]
-    
+    print("Mode calculated")
     
     q <- ggplot(data[data$variable==name,],aes(x=value,fill=chain,group=chain,y=..density..)) + geom_density(size=1,alpha=0.5) + ggtitle(paste(name, " Density Plot", sep="")) + scale_x_continuous(limits=xlims) +
         geom_vline(xintercept=mean_line,colour="red") +
             geom_text(aes(x=mean_line,label="Mean",y=max(z$y/2)),colour="red",angle=90,text=element_text(size=8)) +
                 geom_vline(xintercept=mode_line,colour="blue") +
                     geom_text(aes(x=mode_line,label="Mode",y=max(z$y/2)),colour="blue",angle=90,text=element_text(size=8))
+    print("Initial plot")
     if(!is.null(best_fits)){
         mle_line <- as.numeric(best_fits[which(names(best_fits)==name)])
         q <- q + geom_vline(xintercept=mle_line,colour="purple") +
                     geom_text(aes(x=mle_line,label="MLE",y=max(z$y/2)),colour="purple",angle=90,text=element_text(size=8))
+        print("optional plot")
     }
     if(!is.null(prior)){
         prior <- rbind(c(xlims[1],0.0,"prior"),prior,c(xlims[2],0,"prior"))
@@ -237,9 +242,10 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
        # Generate data for prior plots
         prior_dat <- generate_prior_data(colnames(mcmc_chains[[1]]),param_table)
     }
-
+    print("before gettnig MLE")
     best_fit <- tmp_all[which.max(tmp_all[,ncol(tmp_all)])]
-    
+   print("Post getting MLE")
+    print(best_fit)
     # For densities
     melted <- NULL
     for(i in 1:length(mcmc_chains)){
