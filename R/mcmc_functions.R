@@ -52,8 +52,9 @@ proposalfunction <- function(param,param_table,index){
 #' @export
 #' @seealso \code{\link{prior}}
 posterior <- function(params, param_transform_table, param_table, data, LIKELIHOOD_FUNCTION, MODEL_FUNCTION){
-    return(LIKELIHOOD_FUNCTION(params,data,param_transform_table, 1, MODEL_FUNCTION) + prior(params, param_table))
+    #return(LIKELIHOOD_FUNCTION(params,data,param_transform_table, 1, MODEL_FUNCTION) + prior(params, param_table))
    #' return(prior(params, param_table))
+    return(LIKELIHOOD_FUNCTION(params,data,param_transform_table, 1, MODEL_FUNCTION))
 }
 
 
@@ -144,7 +145,7 @@ run_metropolis_MCMC <- function(startvalue,
         # For each parameter (Gibbs)
         for(j in non_fixed_params){
             # Propose new parameters and calculate posterior
-            if(i > adaptive_period + burnin) browser()
+            #'if(i > adaptive_period + burnin) browser()
             proposal <- transform_params_logit(proposalfunction(current_params,param_transform_table,j),param_transform_table)
             newprobab <- posterior(proposal, param_transform_table, param_table, data, LIKELIHOOD_FUNCTION, MODEL_FUNCTION)
             proposal <- transform_params_logistic(proposal, param_transform_table)
