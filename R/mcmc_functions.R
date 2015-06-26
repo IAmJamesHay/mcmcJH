@@ -52,7 +52,8 @@ proposalfunction <- function(param,param_table,index){
 #' @export
 #' @seealso \code{\link{prior}}
 posterior <- function(params, param_transform_table, param_table, data, LIKELIHOOD_FUNCTION, MODEL_FUNCTION){
-    return(LIKELIHOOD_FUNCTION(params,data,param_transform_table, 1, MODEL_FUNCTION) + prior(params, param_table))
+    ##return(LIKELIHOOD_FUNCTION(params,data,param_transform_table, 1, MODEL_FUNCTION) + prior(params, param_table))
+    return(prior(params, param_table))
 }
 
 
