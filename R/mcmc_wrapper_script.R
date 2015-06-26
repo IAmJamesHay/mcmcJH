@@ -490,12 +490,12 @@ MCMC_fit_single <- function(data,
     for(i in 1:length(tmp_chains)){
         tmp <- read.csv(tmp_chains[[i]], header=1)
         # Remove burnin and only save parameter values (ie. remove sampleno and lnlikelihood)
+        tmp_big_chain <- rbind(tmp_big_chain,tmp[(burnin+adaptive_period):nrow(tmp),2:ncol(tmp)])        
         final_chains[[i]] <- as.mcmc(tmp[(burnin+adaptive_period):nrow(tmp),2:ncol(tmp)])
         if(max(tmp[,ncol(tmp)]) > best_lnlike){
             best_pars <- tmp[which.max(tmp[,ncol(tmp)]),2:(ncol(tmp)-1)]
             best_lnlike <- max(tmp[,ncol(tmp)])
         }
-        tmp_big_chain <- rbind(tmp_big_chain,final_chains[[i]])
     }
 
     #' Use the rbound chain to get density estimates and therefore modes
