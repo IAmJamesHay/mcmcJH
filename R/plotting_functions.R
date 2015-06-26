@@ -141,7 +141,6 @@ restrain_bounds <- function(dat, lower, upper){
 #' @export
 #' @seealso \code{\link{mcmc_all_plots_mcmc}}
 mcmc_density_multi <- function(name, data, xlims, prior=NULL,best_fits=NULL){
-    print("In MCMC density call")
     dat <- data[data$variable==name,]
     z <- density(dat[,2])
     mean_line <- mean(dat[,2])
@@ -185,13 +184,13 @@ mcmc_iter_multi <- function(name, data,burnin,best_fit=NULL){
     
     q <- ggplot(tmp_dat,aes(x=iteration,y=value,colour=chain)) + geom_line() + ggtitle(paste(name, " Iter Plot",sep="")) + geom_vline(xintercept=burnin, colour="green", linetype="longdash")+
         geom_hline(yintercept=mean_line,colour="red") +
-            geom_text(aes_q(y=mean_line,label="\nMean",x=max(z$x/2)),colour="red",angle=90,text=element_text(size=6)) +
+            geom_text(aes_q(y=mean_line,label="\nMean",x=max(z$x/2)),colour="red",text=element_text(size=6)) +
                 geom_hline(yintercept=mode_line,colour="blue") +
-                    geom_text(aes_q(y=mode_line,label="\nMode",x=max(z$x/2)),colour="blue",angle=90,text=element_text(size=6))
+                    geom_text(aes_q(y=mode_line,label="\nMode",x=max(z$x/2)),colour="blue",text=element_text(size=6))
     if(!is.null(best_fit)) {
         mle_line <- as.numeric(best_fit[which(names(best_fit)==name)])
         q <- q + geom_hline(yintercept=mle_line,colour="purple") +            
-            geom_text(aes_q(y=mle_line,label="\nMLE",x=max(z$x/2)),colour="purple",angle=90,text=element_text(size=6))
+            geom_text(aes_q(y=mle_line,label="\nMLE",x=max(z$x/2)),colour="purple",text=element_text(size=6))
     }
     
 }

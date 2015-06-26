@@ -334,16 +334,19 @@ MCMC_fit_1.2 <- function(temp_dat,
         }
         
         best_pars <- transform_params_logistic(tmp_optim_result$fullpars,param_transform_table)
+        mode_pars <- best_pars
     }
     else {
         best_pars_plot <- tmp_mcmc_results$params
         best_pars <- as.numeric(tmp_mcmc_results$params)
+        mode_pars <- tmp_mcmc_results$mode_params
     }
 
   # Save MCMC summary to the appropriate csv file
     tmp_table <- tmp_mcmc_results$summary$statistics
-    tmp_table <- cbind(tmp_table, tmp_mcmc_results$summary$quantiles,effective_sample_size,c(best_pars,NA))
+    tmp_table <- cbind(tmp_table, tmp_mcmc_results$summary$quantiles,effective_sample_size,c(mode_pars,NA),c(best_pars,NA))
     colnames(tmp_table)[ncol(tmp_table)] <- "maximum likelihood"
+    colnames(tmp_table)[ncol(tmp_table)-1] <- "modal params"
     
     # Plot densities and iter plots
     tmp_chains <- NULL
@@ -480,6 +483,10 @@ MCMC_fit_single <- function(data,
     # Find maximum likelihood parameters
     best_pars <- NULL
     best_lnlike <- -Inf
+
+    #' Container to rbind all chains
+    tmp_big_chain <- NULL
+    
     for(i in 1:length(tmp_chains)){
         tmp <- read.csv(tmp_chains[[i]], header=1)
         # Remove burnin and only save parameter values (ie. remove sampleno and lnlikelihood)
@@ -488,8 +495,21 @@ MCMC_fit_single <- function(data,
             best_pars <- tmp[which.max(tmp[,ncol(tmp)]),2:(ncol(tmp)-1)]
             best_lnlike <- max(tmp[,ncol(tmp)])
         }
+        tmp_big_chain <- rbind(tmp_big_chain,final_chains[[i]])
     }
 
+    #' Use the rbound chain to get density estimates and therefore modes
+    colnames(tmp_big_chain) <- colnames(final_chains[[i]])
+
+    mode_pars <- NULL
+    for(index in 1:ncol(tmp_big_chain)){
+        tmp_den <- tmp_big_chain[,index]
+        z <- density(tmp_den)
+        mode_par <- z$x[which.max(z$y)]
+        mode_pars[index] <- mode_par
+    }
+    print("mode params:")
+    print(mode_pars)
     # Convert results to returnable format
     combined_mcmc <- as.mcmc.list(final_chains)
     mcmc_summary <- summary(combined_mcmc)
@@ -502,6 +522,6 @@ MCMC_fit_single <- function(data,
         }
     }
     
-    return(list(chains=final_chains,summary=mcmc_summary,files=tmp_chains,params=best_pars))
+    return(list(chains=final_chains,summary=mcmc_summary,files=tmp_chains,params=best_pars, mode_params=mode_pars))
 }
 
