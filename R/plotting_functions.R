@@ -54,6 +54,7 @@ plot_model_fits_publication<- function(model_data,
                 geom_point(data=actual_data,aes(x=variable,y=value,fill=strain,colour=strain,ymax=13),size=4,position=position_jitter(w=0.5,h=0.1)) + 
                     geom_line(data=model_data,aes(x=variable,y=value,fill=strain,colour=strain),size=0.8) +
                         scale_colour_manual(values=brewer.pal(8,"Set1")[colours])+
+                            scale_fill_manual(values=brewer.pal(8,"Set1")[colours])+
                             scale_y_continuous(breaks=seq(low,high,by=1),limits=c(low,high),expand=c(0,0))+
                                 ggtitle(title)+
                                         theme(
