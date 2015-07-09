@@ -71,7 +71,7 @@ plot_model_fits_publication<- function(model_data,
                                             plot.margin=unit(c(0.5,1,0.5,0.5),"cm"),
                                             panel.background=element_blank(),
                                             axis.text.y=element_text(colour="gray12",size=14),
-                                            xis.title=element_text(size=24,),
+                                            axis.title=element_text(size=24,),
                                             axis.title.y = element_text(size=24,angle=90)
                                             )+
                                             geom_hline(yintercept=0,colour="gray25",linetype="dotted") +
