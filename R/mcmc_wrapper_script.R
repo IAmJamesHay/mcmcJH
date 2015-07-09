@@ -92,7 +92,7 @@ MCMC_main <- function(
 
     # Return to old WD and finish
     setwd(oldwd)
-    return(0)
+    return(final)
 }
 
 #' First level wrapper function for the MCMC algorithm.
@@ -216,8 +216,7 @@ MCMC_fit_1.1 <- function(top_dir,
                     prediction_intervals$lower_prediction_bounds,
                     prediction_intervals$upper_prediction_bounds,
                     infection_times=infection_times)
-    
-    
+
     if(!is.null(output_file)) sink()
     
     if(.Platform$OS.type=="unix"){
@@ -225,7 +224,13 @@ MCMC_fit_1.1 <- function(top_dir,
     } else {
         stopCluster(c1)
     }
-    return(0)
+    return(list(prediction_intervals$model_data,
+                    prediction_intervals$prediction_data,
+                    group,
+                    c(lower_plot_bound,upper_plot_bound),
+                    prediction_intervals$lower_prediction_bounds,
+                    prediction_intervals$upper_prediction_bounds,
+                    infection_times))
 }
 
 #' Second level wrapper for the MCMC fitting procedure. HIGHEST, GENERALISED LEVEL

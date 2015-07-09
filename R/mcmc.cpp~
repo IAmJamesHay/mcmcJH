@@ -1,0 +1,15 @@
+#include "mcmc.hpp"
+
+std::vector<std::string> run_MCMC(NumericVector startvalue, 
+				  int iterations, 
+				  NumericMatrix data, 
+				  NumericMatrix param_table, 
+				  double popt, 
+				  int opt_freq, 
+				  int thin, 
+				  int burnin, 
+				  int adaptive_period, 
+				  int save_block,
+				  bool VERBOSE
+				  ){
+
