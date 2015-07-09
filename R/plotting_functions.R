@@ -387,7 +387,8 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
                             best_fit),
             mcmc_density_multi(colnames(mcmc_chains[[1]])[i],melted,
                                c(param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"lower_bound"],param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"upper_bound"]),
-                               prior_dat[prior_dat$param==colnames(mcmc_chains[[1]])[i],c("variable","value","chain")],
+                               #'prior_dat[prior_dat$param==colnames(mcmc_chains[[1]])[i],c("variable","value","chain")],
+                               NULL,
                                best_fit
                                )
             ,ncol=2)))
