@@ -83,6 +83,6 @@ likelihood_observation <- function(params, data, param_table=NULL,optimisation_d
     for(i in 1:nrow(out)){
         nll <- nll +  log(o(as.integer(a[i]),as.integer(b[i])))
     }
-    if(is.nan(nll) | is.infinite(nll)) nll <- 99999999999
+    if(is.nan(nll) | is.infinite(nll)) nll <- -99999999999
     nll <- optimisation_direction*nll
 }
