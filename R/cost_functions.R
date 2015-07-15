@@ -60,7 +60,7 @@ likelihood_poisson <- function(params,data,param_table=NULL,optimisation_directi
     for(i in 1:nrow(out)){
         nll <- nll +  log(likelihood_simple(a[i],b[i]))
     }
-    if(is.nan(nll) | is.infinite(nll)) nll <- 99999999999
+    if(is.nan(nll) | is.infinite(nll)) nll <- optimisation_direction*99999999999
     nll <- optimisation_direction*nll
 }
 
