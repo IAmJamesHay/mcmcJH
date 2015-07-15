@@ -76,6 +76,7 @@ likelihood_observation <- function(params, data, param_table=NULL,optimisation_d
     }
     out <- MODEL_FUNCTION(params, data[,1], ...)
     out[out<0] <- 0
+    out[out>15] <- 15
     nll <- 0
     a <- out[,2]
     b <- data[,2]
