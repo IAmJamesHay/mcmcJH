@@ -367,7 +367,7 @@ MCMC_fit_1.2 <- function(temp_dat,
     remove(tmp_table)
     
     # Only pass parameters that were included in MCMC fitting. First index should be "sampno" for iteration number
-    mcmc_all_plots_multi(filename,tmp_chains,param_table,(burnin+adaptive_period),best_pars_plot)
+    #'mcmc_all_plots_multi(filename,tmp_chains,param_table,(burnin+adaptive_period),best_pars_plot)
     remove(tmp_chains)
     
     # Carry out Gelman diagnostics
