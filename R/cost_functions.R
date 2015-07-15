@@ -80,7 +80,7 @@ likelihood_observation <- function(params, data, param_table=NULL,optimisation_d
     a <- out[,2]
     b <- data[,2]
     for(i in 1:nrow(out)){
-        nll <- nll +  log(observation_model_kucharski(as.integer(a[i]),as.integer(b[i])))
+        nll <- nll +  log(observation_model_kucharski(ronud(a[i],0),round(b[i],0)))
     }
     if(is.nan(nll) | is.infinite(nll)) nll <- -99999999999
     nll <- optimisation_direction*nll
