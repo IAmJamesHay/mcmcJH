@@ -64,3 +64,24 @@ likelihood_poisson <- function(params,data,param_table=NULL,optimisation_directi
     nll <- optimisation_direction*nll
 }
 
+
+#' Observation error only function
+#'
+#'
+#' @export
+likelihood_observation <- function(params, data, param_table=NULL,optimisation_direction=-1, MODEL_FUNCTION, ...) {
+   # Convert parameters to normal space for prediction ONLY IF upper and lower bounds have been provided
+    if(!is.null(param_table)){
+        params <- transform_params_logistic(params,param_table)
+    }
+    out <- MODEL_FUNCTION(params, data[,1], ...)
+    out[out<0] <- 0
+    nll <- 0
+    a <- out[,2]
+    b <- data[,2]
+    for(i in 1:nrow(out)){
+        nll <- nll +  log(o(as.integer(a[i]),as.integer(b[i])))
+    }
+    if(is.nan(nll) | is.infinite(nll)) nll <- 99999999999
+    nll <- optimisation_direction*nll
+}
