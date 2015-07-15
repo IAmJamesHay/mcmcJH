@@ -55,7 +55,7 @@ likelihood_simple<- function(lambda, obs){
 # Reads observation error from observation matrix
 o <- function(k, obs){
     if(is.na(obs) | is.na(k)) return(0)
-    if((obs+1) > MAX_TITRE | (k+1) > MAX_TITRE) return(0)
+    if((obs) > MAX_TITRE | (k) > MAX_TITRE) return(0)
     return(OBS.MATRIX[k+1,obs+1])
 }
 
