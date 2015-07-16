@@ -272,8 +272,7 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
                                 best_fit
                                 )
         print("here")
-        tmp_plot <- grid.arrange(a,b,ncol=2)
-        final_plots[[i]] <- list(tmp_filename,tmp_plot)
+        final_plots[[i]] <- list(tmp_filename,arrangeGrob(a,b,ncol=2))
         print("here now")
     }
     return(final_plots)
