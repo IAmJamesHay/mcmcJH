@@ -263,14 +263,23 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
     for(i in 2:ncol(mcmc_chains[[1]])){
         tmp_filename <- paste(filename, "_MCMC_", sep="")
         tmp_filename <- paste(tmp_filename,colnames(mcmc_chains[[1]])[i],".png",sep="")
-        a <- mcmc_iter_multi(colnames(mcmc_chains[[1]])[i],tmp_all,burnin,best_fit)
-        
-        b <- mcmc_density_multi(colnames(mcmc_chains[[1]])[i],melted,
-                                c(param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"lower_bound"],param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"upper_bound"]),
+        #'a <- mcmc_iter_multi(colnames(mcmc_chains[[1]])[i],tmp_all,burnin,best_fit)
+        #'
+        #'b <- mcmc_density_multi(colnames(mcmc_chains[[1]])[i],melted,
+          #'                      c(param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"lower_bound"],param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"upper_bound"]),
                                 #'prior_dat[prior_dat$param==colnames(mcmc_chains[[1]])[i],c("variable","value","chain")],
-                                NULL,
-                                best_fit
-                                )
+             #'                   NULL,
+                #'                best_fit
+                   #'             )
+        final_plots[[i]] <- list(tmp_filename,suppressWarnings(grid.arrange(
+            mcmc_iter_multi(colnames(mcmc_chains[[1]])[i],tmp_all,burnin,
+                            best_fit),
+            mcmc_density_multi(colnames(mcmc_chains[[1]])[i],melted,
+                               c(param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"lower_bound"],param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"upper_bound"]),
+                               NULL,
+                               best_fit
+                               )
+           ,ncol=2)))
         print("here")
         final_plots[[i]] <- list(tmp_filename,grid.arrange(a,b,ncol=2))
         print("here now")
