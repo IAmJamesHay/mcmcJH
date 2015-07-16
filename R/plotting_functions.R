@@ -259,30 +259,20 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
         tmp_melt$chain <- as.character(i)
         melted <- rbind(melted, tmp_melt)
     }
-    final_plots <- NULL
     for(i in 2:ncol(mcmc_chains[[1]])){
         tmp_filename <- paste(filename, "_MCMC_", sep="")
         tmp_filename <- paste(tmp_filename,colnames(mcmc_chains[[1]])[i],".png",sep="")
-        #'a <- mcmc_iter_multi(colnames(mcmc_chains[[1]])[i],tmp_all,burnin,best_fit)
-        #'
-        #'b <- mcmc_density_multi(colnames(mcmc_chains[[1]])[i],melted,
-          #'                      c(param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"lower_bound"],param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"upper_bound"]),
+        a <- mcmc_iter_multi(colnames(mcmc_chains[[1]])[i],tmp_all,burnin,best_fit)
+        
+        b <- mcmc_density_multi(colnames(mcmc_chains[[1]])[i],melted,
+                                c(param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"lower_bound"],param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"upper_bound"]),
                                 #'prior_dat[prior_dat$param==colnames(mcmc_chains[[1]])[i],c("variable","value","chain")],
-             #'                   NULL,
-                #'                best_fit
-                   #'             )
-        final_plots[[i]] <- list(tmp_filename,suppressWarnings(grid.arrange(
-            mcmc_iter_multi(colnames(mcmc_chains[[1]])[i],tmp_all,burnin,
-                            best_fit),
-            mcmc_density_multi(colnames(mcmc_chains[[1]])[i],melted,
-                               c(param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"lower_bound"],param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"upper_bound"]),
-                               NULL,
-                               best_fit
-                               )
-           ,ncol=2)))
-        print("here")
-        final_plots[[i]] <- list(tmp_filename,grid.arrange(a,b,ncol=2))
-        print("here now")
+                                NULL,
+                                best_fit
+                                )
+        png(tmp_filename,height=300,width=800)
+        grid.arrange(a,b,ncol=2)
+        dev.off()
     }
     return(final_plots)
 }

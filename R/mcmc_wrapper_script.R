@@ -208,10 +208,9 @@ MCMC_fit_1.1 <- function(top_dir,
                               )
     }
     for(i in 1:length(results_MCMC)){
-        for(j in 1:length(results_MCMC[[i]]$plots)){
-            print(results_MCMC[[i]]$plots[[j]])
-        }
-    }
+        tmp_plots <- results_MCMC[[i]]$plots
+        mcmc_all_plots_multi(tmp_plots[[1]],tmp_plots[[2]],tmp_plots[[3]],tmp_plots[[4]],tmp_plots[5]])
+}
                                         # Fairly elaborate way of generation 95% prediction intervals. Probably room for improvement...
     prediction_intervals<- generate_prediction_intervals_1.1(results_MCMC, (burnin+adaptive_period), param_table, all_data, MODEL_FUNCTION)
     plot_model_fits(prediction_intervals$model_data,
@@ -372,8 +371,8 @@ MCMC_fit_1.2 <- function(temp_dat,
     remove(tmp_table)
     
     # Only pass parameters that were included in MCMC fitting. First index should be "sampno" for iteration number
-    plots <- mcmc_all_plots_multi(filename,tmp_chains,param_table,(burnin+adaptive_period),best_pars_plot)
-    remove(tmp_chains)
+    plots <- list(filename,tmp_chains,param_table,(burnin+adaptive_period),best_pars_plot)
+    #'        mcmc_all_plots_multi(filename,tmp_chains,param_table,(burnin+adaptive_period),best_pars_plot)
     
     # Carry out Gelman diagnostics
     diagnostics_error <- mcmc_diagnostics(tmp_mcmc_results$chains,filename, param_table)
