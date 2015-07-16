@@ -274,7 +274,6 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
         grid.arrange(a,b,ncol=2)
         dev.off()
     }
-    return(final_plots)
 }
 
 #' Individual MCMC density plots for a single chain

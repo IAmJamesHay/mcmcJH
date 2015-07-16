@@ -210,7 +210,7 @@ MCMC_fit_1.1 <- function(top_dir,
     for(i in 1:length(results_MCMC)){
         tmp_plots <- results_MCMC[[i]]$plots
         mcmc_all_plots_multi(tmp_plots[[1]],tmp_plots[[2]],tmp_plots[[3]],tmp_plots[[4]],tmp_plots[[5]])
-}
+    }
                                         # Fairly elaborate way of generation 95% prediction intervals. Probably room for improvement...
     prediction_intervals<- generate_prediction_intervals_1.1(results_MCMC, (burnin+adaptive_period), param_table, all_data, MODEL_FUNCTION)
     plot_model_fits(prediction_intervals$model_data,
