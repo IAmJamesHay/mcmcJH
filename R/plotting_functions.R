@@ -17,7 +17,7 @@ plot_model_fits <- function(model_data, actual_data, group,plot_bounds,lower=NUL
     high <- plot_bounds[2]
  
     # Filename - might need to change file type
-    filename <- paste(group,"_fit.pdf",sep="")
+    filename <- paste(group,"_fit.png",sep="")
 
     title <- ""
     if(!is.null(plot_title)){
@@ -58,9 +58,9 @@ plot_model_fits <- function(model_data, actual_data, group,plot_bounds,lower=NUL
                                             plot.margin=unit(c(0.5,1,0.5,0.5),"cm"),
                                             panel.background=element_blank(),
                                             axis.text.y=element_text(colour="gray20",size=14))+
-                                                scale_x_continuous(breaks=xscale,labels=xlabels)
-                                              
-    # If specified, add vertical lines for infection times
+                                            scale_x_continuous(breaks=xscale,labels=xlabels)
+    
+                                        # If specified, add vertical lines for infection times
     if(!is.null(infection_times)){
         for(i in 1:nrow(infection_times)){
             plot <- plot + geom_vline(xintercept=infection_times[i,"time"],colour="red",linetype="longdash",angle="90")

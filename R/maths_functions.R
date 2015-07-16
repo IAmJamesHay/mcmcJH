@@ -69,7 +69,7 @@ transform_logit <- function(x, xmin, xmax){
 #' @examples
 #' toUnitScale(65,20,80)
 #' toUnitScale(15,0,16,TRUE,10)
-toUnitScale <- function(y, min=1,max=100,logflag=FALSE,logbase=10){
+toUnitScale1 <- function(y, min=1,max=100,logflag=FALSE,logbase=10){
     if(logflag){
         rtn <- (log(y,logbase)-log(min,logbase))/(log(max,logbase)-log(min,logbase))
     }
@@ -92,7 +92,7 @@ toUnitScale <- function(y, min=1,max=100,logflag=FALSE,logbase=10){
 #' @examples
 #' fromUnitScale(0.5,20,80)
 #' fromUnitScale(0.33,0,16,TRUE,10)
-fromUnitScale <- function(x,min=1,max=100,logflag=FALSE,logbase=10){
+fromUnitScale1 <- function(x,min=1,max=100,logflag=FALSE,logbase=10){
     if(logflag){
         rtn <- min*logbase^(x*(log(max,logbase)-log(min,logbase)))
     } 

@@ -470,19 +470,31 @@ MCMC_fit_single <- function(data,
     else {
         tmp_chains <- NULL
         for(i in 1:nchain){
-            tmp_chains[[i]] <-  paste(getwd(), "/", run_metropolis_MCMC(startvalue=rand.params(param_table),
-                                                                        iterations=iterations,
-                                                                        data=data,
-                                                                        param_table=param_table,
-                                                                        popt=popt,
-                                                                        opt_freq=opt_freq,
-                                                                        thin=thin,
-                                                                        burnin=burnin,
-                                                                        adaptive_period=adaptive_period,
-                                                                        LIKELIHOOD_FUNCTION,
-                                                                        MODEL_FUNCTION,
-                                                                        paste(tmp_filename,"_",i,sep="")
-                                                                        ), sep="")
+            #'tmp_chains[[i]] <-  paste(getwd(), "/", run_metropolis_MCMC(startvalue=rand.params(param_table),
+               #'                                                         iterations=iterations,
+                  #'                                                      data=data,
+                     #'                                                   param_table=param_table,
+                        #'                                                popt=popt,
+                           #'                                             opt_freq=opt_freq,
+                              #'                                          thin=thin,
+                                 #'                                       burnin=burnin,
+                                    #'#                                    adaptive_period=adaptive_period,
+                                          #'                              LIKELIHOOD_FUNCTION,
+                                             #'                           MODEL_FUNCTION,
+                                                #'                        paste(tmp_filename,"_",i,sep="")
+                                                   #'                     ), sep="")
+            tmp_chains[[i]] <- paste(getwd(),"/",run_MCMC(startvalue=rand.params(param_table),
+                                                          data=data,
+                                                          param_table=param_table[,c("fixed","lower_bound","upper_bound","step","log_proposal")],
+                                                          iterations,
+                                                          popt,
+                                                          opt_freq,
+                                                          thin,
+                                                          burnin,
+                                                          adaptive_period,
+                                                          paste(tmp_filename,"_",i,sep=""),
+                                                          500),sep="")
+                                                        
         }
     }
     
@@ -506,7 +518,7 @@ MCMC_fit_single <- function(data,
         final_chains[[i]] <- as.mcmc(tmp[tmp$sampno > (burnin+adaptive_period),2:ncol(tmp)])
         #'final_chains[[i]] <- as.mcmc(tmp[(burnin+adaptive_period):nrow(tmp),2:ncol(tmp)])
         if(max(tmp[,ncol(tmp)]) > best_lnlike){
-            best_pars <- tmp[which.max(tmp[,ncol(tmp)]),2:(ncol(tmp)-1)]
+            best_pars <- tmp[which.max(tmp[tmp$sampno > (burnin+adaptive_period),ncol(tmp)]),2:(ncol(tmp)-1)]
             best_lnlike <- max(tmp[,ncol(tmp)])
         }
     }

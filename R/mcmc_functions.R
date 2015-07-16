@@ -6,7 +6,7 @@
 #' @param index numeric value for the index of the parameter to be moved from the param table and vector
 #' @return the parameter vector after step
 #' @export
-proposalfunction <- function(param,param_table,index){
+proposalfunction1 <- function(param,param_table,index){
     # 4th index is upper bound, 3rd is lower
     # 1st and 2nd index used in other functions
     mn <- param_table[index,3]
@@ -51,7 +51,7 @@ proposalfunction <- function(param,param_table,index){
 #' @return a single value for the posterior (by Bayes rule)
 #' @export
 #' @seealso \code{\link{prior}}
-posterior <- function(params, param_transform_table, param_table, data, LIKELIHOOD_FUNCTION, MODEL_FUNCTION){
+posterior1 <- function(params, param_transform_table, param_table, data, LIKELIHOOD_FUNCTION, MODEL_FUNCTION){
     #return(LIKELIHOOD_FUNCTION(params,data,param_transform_table, 1, MODEL_FUNCTION) + prior(params, param_table))
    #' return(prior(params, param_table))
     return(LIKELIHOOD_FUNCTION(params,data,param_transform_table, 1, MODEL_FUNCTION))
@@ -214,7 +214,7 @@ run_metropolis_MCMC <- function(startvalue,
 #' @param the current acceptance rate
 #' @return the scaled step size
 #' @export
-scaletuning <- function(step, popt,pcur){
+scaletuning1 <- function(step, popt,pcur){
     if(pcur ==1) pcur <- 0.99
     if(pcur == 0) pcur <- 0.01
     step = (step*qnorm(popt/2))/qnorm(pcur/2)

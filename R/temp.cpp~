@@ -1,0 +1,4 @@
+
+
+//[[Rcpp::export]]
+int randNumber(const int n){return floor(unif_rand()*n);}
