@@ -262,7 +262,7 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
    
     for(i in 2:ncol(mcmc_chains[[1]])){
         tmp_filename <- paste(filename, "_MCMC_", sep="")
-        tmp_filename <- paste(tmp_filename,colnames(mcmc_chains[[1]])[i],".png",sep="")
+        tmp_filename <- paste(tmp_filename,colnames(mcmc_chains[[1]])[i],".pdf",sep="")
         a <- mcmc_iter_multi(colnames(mcmc_chains[[1]])[i],tmp_all,burnin,best_fit)
             
             b <- mcmc_density_multi(colnames(mcmc_chains[[1]])[i],melted,
@@ -272,7 +272,7 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
                                     best_fit
                                     )
         tmp_plot <- grid.arrange(a,b,ncol=2)
-        png(tmp_filename,height=300,width=800)
+        pdf(tmp_filename,height=300,width=800)
         tmp_plot
         dev.off()
     }
