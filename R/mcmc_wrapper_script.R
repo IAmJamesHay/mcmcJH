@@ -14,6 +14,7 @@
 #' @seealso \code{\link{MCMC_fit_1.1}}
 #' @export               
 MCMC_main <- function(
+    sourceCpp("rcpp_functions.cpp")
     data_file,
     param_file,
     mcmc_param_file,
