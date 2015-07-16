@@ -23,7 +23,6 @@ MCMC_main <- function(
     VERBOSE=FALSE,
     infection_labels=NULL
     ){
-    sourceCpp("rcpp_functions.cpp")
     # Read in all data and parameters
     # MCMC parameters
     mcmc_params <- read.csv(paste(getwd(),mcmc_param_file,sep=""),header=1)
