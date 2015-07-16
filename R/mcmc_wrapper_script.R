@@ -367,7 +367,7 @@ MCMC_fit_1.2 <- function(temp_dat,
     remove(tmp_table)
     
     # Only pass parameters that were included in MCMC fitting. First index should be "sampno" for iteration number
-    #'mcmc_all_plots_multi(filename,tmp_chains,param_table,(burnin+adaptive_period),best_pars_plot)
+    mcmc_all_plots_multi(filename,tmp_chains,param_table,(burnin+adaptive_period),best_pars_plot)
     remove(tmp_chains)
     
     # Carry out Gelman diagnostics
@@ -491,12 +491,16 @@ MCMC_fit_single <- function(data,
 
     #' Container to rbind all chains
     tmp_big_chain <- NULL
-    
+
+    #' Go through and find maximum likelihood parameters
     for(i in 1:length(tmp_chains)){
         tmp <- read.csv(tmp_chains[[i]], header=1)
         # Remove burnin and only save parameter values (ie. remove sampleno and lnlikelihood)
-        tmp_big_chain <- rbind(tmp_big_chain,tmp[(burnin+adaptive_period):nrow(tmp),2:ncol(tmp)])        
-        final_chains[[i]] <- as.mcmc(tmp[(burnin+adaptive_period):nrow(tmp),2:ncol(tmp)])
+        #'tmp_big_chain <- rbind(tmp_big_chain,tmp[(burnin+adaptive_period):nrow(tmp),2:ncol(tmp)])
+        tmp_big_chain <- rbind(tmp_big_chain,tmp[tmp$sampno > (burnin+adaptive_period),2:ncol(tmp)])
+        #' This needs to change, as might only be saving every say 5th iteration. Needs to be:
+        final_chains[[i]] <- as.mcmc(tmp[tmp$sampno > (burnin+adaptive_period),2:ncol(tmp)])
+        #'final_chains[[i]] <- as.mcmc(tmp[(burnin+adaptive_period):nrow(tmp),2:ncol(tmp)])
         if(max(tmp[,ncol(tmp)]) > best_lnlike){
             best_pars <- tmp[which.max(tmp[,ncol(tmp)]),2:(ncol(tmp)-1)]
             best_lnlike <- max(tmp[,ncol(tmp)])
@@ -511,7 +515,6 @@ MCMC_fit_single <- function(data,
     for(index in 1:ncol(tmp_big_chain)){
         tmp_den <- tmp_big_chain[,index]
         z <- density(tmp_den)
-        
         mode_par <- z$x[which.max(z$y)]
         modal_pars[index] <- mode_par
     }
