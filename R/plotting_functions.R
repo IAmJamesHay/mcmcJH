@@ -273,7 +273,7 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
                                     )
         tmp_plot <- grid.arrange(a,b,ncol=2)
         png(tmp_filename,height=300,width=800)
-        plot(tmp_plot)
+        tmp_plot
         dev.off()
     }
 }
