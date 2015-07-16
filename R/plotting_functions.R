@@ -273,9 +273,7 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
                                 )
         print("here")
         tmp_plot <- arrangeGrob(a,b,ncol=2)
-        final_plots[[i]] <- NULL
-        final_plots[[i]][[1]] <- tmp_filename
-        final_plots[[i]][[2]] <- tmp_plot
+        final_plots[[i]] <- list(tmp_filename,tmp_plot)
         print("here now")
     }
     return(final_plots)
