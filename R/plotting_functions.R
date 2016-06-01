@@ -140,21 +140,19 @@ restrain_bounds <- function(dat, lower, upper){
 #' @return a single ggplot object of the density plot
 #' @export
 #' @seealso \code{\link{mcmc_all_plots_mcmc}}
-mcmc_density_multi <- function(name, data, xlims, prior=NULL,best_fits=NULL){
+mcmc_density_multi <- function(name, data, xlims, prior=NULL,best_fit=NULL){
     dat <- data[data$variable==name,]
     z <- density(dat[,2])
     mean_line <- mean(dat[,2])
     mode_line <- z$x[which.max(z$y)]
-
     q <- ggplot(data[data$variable==name,],aes(x=value,fill=chain,group=chain,y=..density..)) + geom_density(size=1,alpha=0.5) + ggtitle(paste(name, " Density Plot", sep="")) + scale_x_continuous(limits=xlims) +
         geom_vline(xintercept=mean_line,colour="red") +
-            geom_text(aes_q(x=mean_line,label="\nMean",y=max(z$y/2)),colour="red",angle=90,text=element_text(size=6)) +
+            geom_text(aes_q(x=mean_line,label="\nMean",y=max(z$y/4)),colour="red",angle=90,text=element_text(size=6)) +
                 geom_vline(xintercept=mode_line,colour="blue") +
-                    geom_text(aes_q(x=mode_line,label="\nMode",y=max(z$y/2)),colour="blue",angle=90,text=element_text(size=6))
-    if(!is.null(best_fits)){
-        mle_line <- as.numeric(best_fits[which(names(best_fits)==name)])
-        q <- q + geom_vline(xintercept=mle_line,colour="purple") +
-                    geom_text(aes_q(x=mle_line,label="\nMLE",y=max(z$y/2)),colour="purple",angle=90,text=element_text(size=6))
+                    geom_text(aes_q(x=mode_line,label="\nMode",y=max(3*z$y/4)),colour="blue",angle=90,text=element_text(size=6))
+    if(!is.null(best_fit)){
+        q <- q + geom_vline(xintercept=best_fit,colour="purple") +
+                    geom_text(aes_q(x=best_fit,label="\nMLE",y=max(z$y/2)),colour="purple",angle=90,text=element_text(size=6))
     }
     if(!is.null(prior)){
         prior <- rbind(c(xlims[1],0.0,"prior"),prior,c(xlims[2],0,"prior"))
@@ -177,21 +175,21 @@ mcmc_density_multi <- function(name, data, xlims, prior=NULL,best_fits=NULL){
 mcmc_iter_multi <- function(name, data,burnin,best_fit=NULL){
     tmp_dat <- data[,c("iteration",name,"chain")]
     colnames(tmp_dat) <- c("iteration","value","chain")
-    
     z <- density(tmp_dat[,"value"])
     mean_line <- mean(tmp_dat[,"value"])
     mode_line <- z$x[which.max(z$y)]
     
     q <- ggplot(tmp_dat,aes(x=iteration,y=value,colour=chain)) + geom_line() + ggtitle(paste(name, " Iter Plot",sep="")) + geom_vline(xintercept=burnin, colour="green", linetype="longdash")+
         geom_hline(yintercept=mean_line,colour="red") +
-            geom_text(aes_q(y=mean_line,label="\nMean",x=burnin/2),colour="red",text=element_text(size=6)) +
+            geom_text(aes_q(y=mean_line,label="\nMean",x=burnin/4),colour="red",text=element_text(size=6)) +
                 geom_hline(yintercept=mode_line,colour="blue") +
-                    geom_text(aes_q(y=mode_line,label="\nMode",x=burnin/2),colour="blue",text=element_text(size=6))
+                    geom_text(aes_q(y=mode_line,label="\nMode",x=3*(burnin/4)),colour="blue",text=element_text(size=6))
     if(!is.null(best_fit)) {
-        mle_line <- as.numeric(best_fit[which(names(best_fit)==name)])
-        q <- q + geom_hline(yintercept=mle_line,colour="purple") +            
-            geom_text(aes_q(y=mle_line,label="\nMLE",x=burnin/2),colour="purple",text=element_text(size=6))
+        #'        mle_line <- as.numeric(best_fit[which(names(best_fit)==name)])
+        q <- q + geom_hline(yintercept=best_fit,colour="purple") +            
+            geom_text(aes_q(y=best_fit,label="\nMLE",x=burnin/2),colour="purple",text=element_text(size=6))
     }
+    return(q)
 }
 
 
@@ -235,8 +233,6 @@ generate_prior_data <- function(names, param_table){
 #' @export
 #' @seealso \code{\link{mcmc_iter_multi}}, \code{\link{mcmc_density_multi}}, \code{\link{mcmc_density_single}}, \code{\link{mcmc_iter_single}}
 mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=NULL,best_fit=NULL){
-    
-
     # For iter
     tmp_all <- NULL
     for(i in 1:length(mcmc_chains)){
@@ -246,15 +242,14 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
         tmp_all <- rbind(tmp_all, tmp)
     }
     colnames(tmp_all) <- colnames(tmp)
-
-    if(!is.null(param_table)){
+    #'if(!is.null(param_table)){
        # Generate data for prior plots
-        prior_dat <- generate_prior_data(colnames(mcmc_chains[[1]]),param_table)
-    }
+        #'prior_dat <- generate_prior_data(colnames(mcmc_chains[[1]]),param_table)
+    #'}
     # For densities
     melted <- NULL
     for(i in 1:length(mcmc_chains)){
-        tmp <- as.data.frame(mcmc_chains[[i]])
+        tmp <- as.data.frame(mcmc_chains[[i]][mcmc_chains[[i]][,1] > burnin,])
         tmp_melt <- melt(tmp)
         tmp_melt$chain <- as.character(i)
         melted <- rbind(melted, tmp_melt)
@@ -262,19 +257,55 @@ mcmc_all_plots_multi <- function(filename, mcmc_chains, param_table=NULL,burnin=
     for(i in 2:ncol(mcmc_chains[[1]])){
         tmp_filename <- paste(filename, "_MCMC_", sep="")
         tmp_filename <- paste(tmp_filename,colnames(mcmc_chains[[1]])[i],".png",sep="")
-        a <- mcmc_iter_multi(colnames(mcmc_chains[[1]])[i],tmp_all,burnin,best_fit)
-        
-        b <- mcmc_density_multi(colnames(mcmc_chains[[1]])[i],melted,
-                                c(param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"lower_bound"],param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"upper_bound"]),
-                                #'prior_dat[prior_dat$param==colnames(mcmc_chains[[1]])[i],c("variable","value","chain")],
-                                NULL,
-                                best_fit
-                                )
-        png(tmp_filename,height=300,width=800)
-        grid.arrange(a,b,ncol=2)
-        dev.off()
+       
+
+        if(colnames(mcmc_chains[[1]])[i] == "lnlike"){
+            a <- mcmc_iter_multi(colnames(mcmc_chains[[1]])[i],tmp_all,burnin,NULL)
+            min <- min(mcmc_chains[[1]][,ncol(mcmc_chains[[1]])])
+            max <- max(mcmc_chains[[1]][,ncol(mcmc_chains[[1]])])
+            best <- max(tmp_all[,ncol(tmp_all)-1])
+            print("min:")
+            print(min)
+            print("max:")
+            print(max)
+            
+            b <- mcmc_density_multi(colnames(mcmc_chains[[1]])[i],melted,
+                                    c(min,max), NULL, NULL)
+            png(tmp_filename,height=300,width=800)
+            plot(as.mcmc(tmp_all[,ncol(tmp_all)-1]))
+            dev.off()
+        }
+        else{
+            a <- mcmc_iter_multi(colnames(mcmc_chains[[1]])[i],tmp_all,burnin,best_fit[i-1])
+            b <- mcmc_density_multi(colnames(mcmc_chains[[1]])[i],melted,
+                                    c(param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"lower_bound"],param_table[param_table$names==colnames(mcmc_chains[[1]])[i],"upper_bound"]),
+                                    #'prior_dat[prior_dat$param==colnames(mcmc_chains[[1]])[i],c("variable","value","chain")],
+                                    NULL,
+                                    best_fit[i-1]
+                                    )
+            png(tmp_filename,height=300,width=800)
+            grid.arrange(a,b,ncol=2)
+            dev.off()
+        }
+       
     }
+    tmp_filename <- paste(filename,"_MCMC_lnlike.png",sep="")
 }
+
+simple_mcmc_plots <- function(filename, mcmc_chains,burnin){
+    for(i in 1:length(mcmc_chains)){
+        mcmc_chains[[i]] <- as.mcmc(mcmc_chains[[i]])
+    }
+    mcmc_chains <- as.mcmc.list(mcmc_chains)
+    filename <- paste(filename, "_MCMC%03d.png",sep="")
+    png(filename)
+    par(mfrow=c(2,ncol(mcmc_chains[[1]])))
+    plot(mcmc_chains)
+    dev.off()
+}
+
+
+    
 
 #' Individual MCMC density plots for a single chain
 #'

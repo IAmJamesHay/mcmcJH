@@ -62,7 +62,7 @@ MCMC_main <- function(
     file_names <- tolower(unlist(lapply(unique(melted.data$strain),function(x) unlist(strsplit(x,"/"))[2])))
     file_names <- gsub("[[:punct:]]|\\s+","_",file_names)
 
-    # Find infection times from params
+    #' Find infection times from params
     infection_times <- infection_labels[infection_labels$group==group,c("time","infection")]
     
     ##################
@@ -174,9 +174,8 @@ MCMC_fit_1.1 <- function(top_dir,
     results_MCMC <- NULL
    # We will then fit the model to each strain
     number_strains <- unique(all_data$strain)
-    
+    tmp_dir <- getwd()
     results_MCMC <- foreach(i=1:length(number_strains),.packages='mcmcJH') %do%{
-        sourceCpp("~/Documents/R_packages/mcmcJH/R/rcpp_functions.cpp")
         setwd(group)
         # Get subset of data
         temp_dat <- all_data[all_data$group == group & all_data$strain == number_strains[i], c("variable","value")]
@@ -206,10 +205,13 @@ MCMC_fit_1.1 <- function(top_dir,
                               VERBOSE,
                               topdir=paste(top_dir,"/tmp",sep="")
                               )
+        setwd(tmp_dir)
+        final
     }
     for(i in 1:length(results_MCMC)){
-        tmp_plots <- results_MCMC[[i]]$plots
-        mcmc_all_plots_multi(tmp_plots[[1]],tmp_plots[[2]],tmp_plots[[3]],tmp_plots[[4]],tmp_plots[[5]])
+        tmptmp <- results_MCMC[[i]]
+        tmp_plots <- tmptmp$plots
+#'        mcmc_all_plots_multi(tmp_plots[[1]],tmp_plots[[2]],tmp_plots[[3]],tmp_plots[[4]],tmp_plots[[5]])
     }
                                         # Fairly elaborate way of generation 95% prediction intervals. Probably room for improvement...
     prediction_intervals<- generate_prediction_intervals_1.1(results_MCMC, (burnin+adaptive_period), param_table, all_data, MODEL_FUNCTION)
@@ -351,7 +353,7 @@ MCMC_fit_1.2 <- function(temp_dat,
         mode_pars <- tmp_mcmc_results$mode_params
     }
 
-  # Save MCMC summary to the appropriate csv file
+    #' Save MCMC summary to the appropriate csv file
     tmp_table <- tmp_mcmc_results$summary$statistics
     tmp_table <- cbind(tmp_table, tmp_mcmc_results$summary$quantiles,effective_sample_size,c(mode_pars,NA),c(best_pars,NA))
     colnames(tmp_table)[ncol(tmp_table)] <- "maximum likelihood"
@@ -361,6 +363,7 @@ MCMC_fit_1.2 <- function(temp_dat,
     tmp_chains <- NULL
     for(i in 1:length(tmp_mcmc_results$files)){
         tmp_chains[[i]] <- read.csv(tmp_mcmc_results$files[[i]], header=1)
+        colnames(tmp_chains[[i]]) <- c("sampno",param_table$names,"lnlike")
         tmp_chains[[i]] <- tmp_chains[[i]][,c(1,which(param_table$fixed==0)+1)]
     }
     
@@ -369,11 +372,11 @@ MCMC_fit_1.2 <- function(temp_dat,
     }
     write.table(file=paste(filename, "_mcmc_summary.csv",sep=""),tmp_table,sep=",",col.names=NA)
     remove(tmp_table)
-    
+
     # Only pass parameters that were included in MCMC fitting. First index should be "sampno" for iteration number
     plots <- list(filename,tmp_chains,param_table,(burnin+adaptive_period),best_pars_plot)
-    #'        mcmc_all_plots_multi(filename,tmp_chains,param_table,(burnin+adaptive_period),best_pars_plot)
-    
+    #'mcmc_all_plots_multi(filename,tmp_chains,param_table,(burnin+adaptive_period),best_pars_plot)
+    simple_mcmc_plots(filename,tmp_chains,(burnin+adaptive_period))
     # Carry out Gelman diagnostics
     diagnostics_error <- mcmc_diagnostics(tmp_mcmc_results$chains,filename, param_table)
     
@@ -388,7 +391,6 @@ MCMC_fit_1.2 <- function(temp_dat,
     if(VERBOSE){
         print(files)
     }
-
     return(list(params=best_pars, times=temp_dat[,1],files=files,plots=plots))
 }
 
@@ -451,8 +453,8 @@ MCMC_fit_single <- function(data,
     }
     
     if(PARALLEL){
+        tmp_dir <- getwd()
         tmp_chains <- foreach(i=1:nchain, .packages='mcmcJH') %do%{
-            sourceCpp("~/Documents/R_packages/mcmcJH/R/rcpp_functions.cpp")
             x <- paste(getwd(), "/", run_metropolis_MCMC(startvalue=rand.params(param_table),
                                                          iterations=iterations,
                                                          data=data,
@@ -466,11 +468,15 @@ MCMC_fit_single <- function(data,
                                                          MODEL_FUNCTION,
                                                          paste(tmp_filename,"_",i,sep="")
                                                          ),sep="")
+            setwd(tmp_dir)
+            x
         }
     }
     else {
         tmp_chains <- NULL
+        greb <- NULL
         for(i in 1:nchain){
+            print(paste("Chain number ",i,sep=""))
             #'tmp_chains[[i]] <-  paste(getwd(), "/", run_metropolis_MCMC(startvalue=rand.params(param_table),
                #'                                                         iterations=iterations,
                   #'                                                      data=data,
@@ -484,9 +490,9 @@ MCMC_fit_single <- function(data,
                                              #'                           MODEL_FUNCTION,
                                                 #'                        paste(tmp_filename,"_",i,sep="")
                                                    #'                     ), sep="")
-            tmp_chains[[i]] <- paste(getwd(),"/",run_MCMC(startvalue=rand.params(param_table),
-                                                          data=data,
-                                                          param_table=param_table[,c("fixed","lower_bound","upper_bound","step","log_proposal")],
+            greb <- paste(getwd(),"/",run_MCMC(startvalue=rand.params(param_table),
+                                                          data=as.matrix(data),
+                                                          param_table=as.matrix(param_table[,c("value","fixed","lower_bound","upper_bound","step","log_proposal")]),
                                                           iterations,
                                                           popt,
                                                           opt_freq,
@@ -495,38 +501,57 @@ MCMC_fit_single <- function(data,
                                                           adaptive_period,
                                                           paste(tmp_filename,"_",i,sep=""),
                                                           500),sep="")
-                                                        
+            first_chain <- read.csv(greb)
+            first_chain <- first_chain[((burnin+adaptive_period)/thin):nrow(first_chain),]
+
+            cov_matrix <- cov(first_chain[,2:(ncol(first_chain)-1)])
+                        
+            tmp_chains[[i]] <- paste(getwd(),"/",run_MCMC_test(startvalue=rand.params(param_table),
+                                                               data=as.matrix(data),
+                                                               param_table=as.matrix(param_table[,c("value","fixed","lower_bound","upper_bound","step","log_proposal")]),
+                                                               iterations,
+                                                               popt,
+                                                               opt_freq,
+                                                               thin,
+                                                               burnin,
+                                                               adaptive_period,
+                                                               paste(tmp_filename,"_",i,sep=""),
+                                                               1000,
+                                                               cov_matrix,
+                                                               rep(2.38,5),
+                                                               0.9),sep="")
         }
     }
     
-    
-    # Reload all chains to return
+    #' Reload all chains to return
     final_chains <- NULL
-    # Find maximum likelihood parameters
+    #' Find maximum likelihood parameters
     best_pars <- NULL
     best_lnlike <- -Inf
-
     #' Container to rbind all chains
     tmp_big_chain <- NULL
-
     #' Go through and find maximum likelihood parameters
+
     for(i in 1:length(tmp_chains)){
-        tmp <- read.csv(tmp_chains[[i]], header=1)
-        # Remove burnin and only save parameter values (ie. remove sampleno and lnlikelihood)
+        tmp <- read.csv(tmp_chains[[i]], header=0)
+        colnames(tmp) <- c("sampno",param_table$names,"lnlike")
+        
+                                        # Remove burnin and only save parameter values (ie. remove sampleno and lnlikelihood)
         #'tmp_big_chain <- rbind(tmp_big_chain,tmp[(burnin+adaptive_period):nrow(tmp),2:ncol(tmp)])
         tmp_big_chain <- rbind(tmp_big_chain,tmp[tmp$sampno > (burnin+adaptive_period),2:ncol(tmp)])
-        #' This needs to change, as might only be saving every say 5th iteration. Needs to be:
+              #' This needs to change, as might only be saving every say 5th iteration. Needs to be:
         final_chains[[i]] <- as.mcmc(tmp[tmp$sampno > (burnin+adaptive_period),2:ncol(tmp)])
         #'final_chains[[i]] <- as.mcmc(tmp[(burnin+adaptive_period):nrow(tmp),2:ncol(tmp)])
-        if(max(tmp[,ncol(tmp)]) > best_lnlike){
-            best_pars <- tmp[which.max(tmp[tmp$sampno > (burnin+adaptive_period),ncol(tmp)]),2:(ncol(tmp)-1)]
-            best_lnlike <- max(tmp[,ncol(tmp)])
+        if(max(tmp[tmp$sampno > (burnin+adaptive_period),ncol(tmp)]) > best_lnlike){
+            best_pars <- tmp[which.max(tmp[tmp$sampno > (burnin+adaptive_period) + (burnin+adaptive_period),ncol(tmp)]),2:(ncol(tmp)-1)]
+            best_lnlike <- max(tmp[tmp$sampno > (burnin+adaptive_period),ncol(tmp)])
         }
     }
-
+    best_pars <- tmp_big_chain[which.max(tmp_big_chain[,ncol(tmp_big_chain)]),1:(ncol(tmp_big_chain)-1)]
+    best_lnlike <- max(tmp_big_chain[,ncol(tmp_big_chain)])
+    
     #' Use the rbound chain to get density estimates and therefore modes
     colnames(tmp_big_chain) <- colnames(final_chains[[i]])
-
     modal_pars <- NULL
 
     for(index in 1:ncol(tmp_big_chain)){
@@ -539,7 +564,6 @@ MCMC_fit_single <- function(data,
     # Convert results to returnable format
     combined_mcmc <- as.mcmc.list(final_chains)
     mcmc_summary <- summary(combined_mcmc)
-    
     if(PARALLEL){
         if(.Platform$OS.type=="unix"){
             registerDoParallel(cores=old_workers)

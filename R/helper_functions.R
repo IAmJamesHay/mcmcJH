@@ -1,3 +1,302 @@
+combine_numbers <- function(middle, lower, upper,sample_size){
+  tmp <- NULL
+  for(i in 1:length(middle)){
+    tmp[i] <- paste(signif(middle[i],3), " (", signif(lower[i],3), "-",signif(upper[i],3),")",sep="")
+    if(sample_size[i] != 0 & sample_size[i] < 200){
+        tmp[i] <- paste(tmp[i], "*",sep="")
+    }
+  }
+  return(tmp)
+}
+
+generate_artificial_data_big <- function(groups, strains, times, parameters, N_indivs){
+    index <- 1
+    all_data <- NULL
+    for(group in groups){
+        for(strain in strains){
+            tmp <- generate_artificial_data(parameters[[index]],times,N_indivs)
+            tmp$strain <- strain
+            tmp$group <- group
+            all_data <- rbind(all_data,tmp)
+            index <- index + 1
+        }
+    }
+    all_data <- all_data[,c(ncol(all_data),(ncol(all_data)-1),seq(1,(ncol(all_data)-2),by=1))]
+    return(all_data)
+}
+generate_artificial_data <- function(parameters,times,individuals){
+    pars <- parameters[3:length(parameters)]
+    S <- parameters[1]
+    EA <- parameters[2]
+
+
+    y <- predict_titres(pars,times)
+    y[y[,2] < 0,2] <- 0
+    y[y[,2] > 13,2] <- 13
+    
+    data <- matrix(ncol=length(times)+1,nrow=individuals)
+    data[,1] <- as.character(seq(1,individuals,by=1))
+    
+    for(i in 1:length(times)){
+        tmp <- generate_sample(individuals,y[i,2],S,EA)
+       
+        data[,i+1] <- tmp
+     }
+
+    data <- as.data.frame(data)
+    for(i in 2:ncol(data)){
+        data[,i] <- as.numeric(as.character(data[,i]))
+    }
+    colnames(data) <- c("indiv",as.character(times))
+    
+    return(data)
+}
+
+generate_sample <- function(N,titre,S,EA){
+    dist <- create_sample_distribution(titre,S,EA)
+    results <- numeric(N)
+    for(j in 1:N){
+        a_number <- runif(1,0,1)
+        p <- dist[1]
+        i <- 1
+
+        while(p < a_number){
+            i <- i + 1
+            p <- dist[i]
+        }
+        results[j] <- i-1
+    }
+    return(as.numeric(results))
+}
+        
+        
+
+create_sample_distribution <- function(titre, S, EA){
+    test <- NULL
+    titre <- floor(titre)
+    test[1] <- obs_error(titre,0,S,EA)
+    for(i in 1:13){
+        test[i+1] <- obs_error(titre,i,S,EA) + test[i]
+    }
+    return(test)
+}
+    
+
+consolidate_data <- function(param_files, start_dir){
+    setwd(start_dir)
+    cur_dir <- getwd()
+    all_dirs <- list.files()
+    not_dirs1 <- Sys.glob("*.pdf")
+    not_dirs2 <- Sys.glob("*.png")
+    not_dirs3 <- Sys.glob("*.csv")
+
+    all_dirs <- setdiff(all_dirs, not_dirs1)
+    all_dirs <- setdiff(all_dirs, not_dirs2)
+    all_dirs <- setdiff(all_dirs, not_dirs3)
+    
+    print(all_dirs)
+    column_names <- c("name","mean","sd","se","se2","X2.5","X25","X50","X75","X97.5","samp","mode","mle")
+
+    tmp_table <- NULL
+    tmp_table2 <- NULL
+
+    largest_table <- NULL
+    largest_nrows <- 0
+    for(i in 1:length(param_files)){
+        param_table <- load_param_table(param_files[[i]])
+        if(nrow(param_table) > largest_nrows){
+            largest_nrows <- nrow(param_table)
+            largest_table <- param_table
+        }
+    }
+
+    overall_names <- NULL
+    for(i in 1:nrow(largest_table)){
+        overall_names[i] <- paste(largest_table$name[i]," (",largest_table$lower_bound[i],"-",largest_table$upper_bound[i],")",sep="")
+    }
+
+
+    for(i in 1:length(all_dirs)){
+        setwd(cur_dir)
+        setwd(all_dirs[i])
+        print(getwd())
+        all_files <- Sys.glob("*.csv")
+        #'print(param_files[[i]])
+        param_table <- load_param_table(param_files[[i]])
+        group <- all_dirs[i]
+        
+        for(j in 1:length(all_files)){
+            strain <- all_files[j]
+            #'print(all_files[j])
+            tmp_summary <- read.csv(all_files[j])
+            colnames(tmp_summary) <- column_names
+            #'print(colnames(tmp_summary))
+            names <- NULL
+            values <- NULL
+#'            print(tmp_summary$name)
+            for(q in 1:(nrow(tmp_summary)-1)){
+                name <- as.character(tmp_summary$name[q])
+
+                mle <- tmp_summary$mle[q]
+                mode <- tmp_summary$mode[q]
+                mean <- tmp_summary$mean[q]
+                lower_quantile <- tmp_summary$X2.5[q]
+                upper_quantile <- tmp_summary$X97.5[q]
+
+                lower_bound <- param_table$lower_bound[which(param_table$name == name)]
+                upper_bound <- param_table$upper_bound[which(param_table$name == name)]
+#'                print(upper_bound)
+                samp <- tmp_summary$samp[q]
+
+                combined <- as.character(combine_numbers(mean, lower_quantile, upper_quantile, samp))
+                values[q] <- combined
+                long_name <- paste(name, " (",as.character(lower_bound),"-",as.character(upper_bound),")",sep="")
+                names[q] <- long_name
+                
+                row <- c(group, strain, name,mle,mode,mean,lower_quantile,upper_quantile,samp,lower_bound,upper_bound)
+                tmp_table <- rbind(tmp_table,row)
+            }
+            names(values) <- names
+            tmp_names <- rep(NA, length(overall_names))
+            index <- 1
+            for(f in 1:length(tmp_names)){
+                if(overall_names[f] == names(values)[index]){
+                    tmp_names[f] <- as.character(values)[index]
+                    index <- index + 1
+                }
+            }
+                    
+            #'            tmp_names[which(overall_names==names(values))] <- as.character(values)
+            #'print(tmp_names)
+            tmp_table2 <- rbind(tmp_table2,c(group, strain,tmp_names))
+        }
+    }
+    tmp_table <- as.data.frame(tmp_table)
+    row.names(tmp_table) <- NULL
+    colnames(tmp_table) <- c("group","strain","param","mle","mode","mean","lower_quantile","upper_quantile","samp_size","lower_bound","upper_bound")
+
+    for(i in 1:ncol(tmp_table)){
+        tmp_table[,i] <- as.character(tmp_table[,i])
+    }
+
+
+    tmp_table2 <- as.data.frame(tmp_table2)
+    colnames(tmp_table2) <- c("Group","Strain",overall_names)
+    row.names(tmp_table2) <- NULL
+
+
+    for(i in 1:ncol(tmp_table2)){
+        tmp_table2[,i] <- as.character(tmp_table2[,i])
+    }
+    tmp_table[tmp_table$group == "Grp 1 (H3N2)","group"] <- "Group 1"
+    tmp_table[tmp_table$group == "Grp 2 (H3N2)","group"] <- "Group 2"
+    tmp_table[tmp_table$group == "Grp 3 (H3N2)","group"] <- "Group 3"
+    tmp_table[tmp_table$group == "Grp 4 (H3N2)","group"] <- "Group 4"
+    tmp_table[tmp_table$group == "Grp 5 (H3N2)","group"] <- "Group 5"
+    tmp_table[tmp_table$group == "Grp 1 (H1N1)","group"] <- "Group 1"
+    tmp_table[tmp_table$group == "Grp 2 (H1N1)","group"] <- "Group 2"
+    tmp_table[tmp_table$group == "Grp 3 (H1N1)","group"] <- "Group 3"
+    tmp_table[tmp_table$group == "Grp 4 (H1N1)","group"] <- "Group 4"
+    tmp_table[tmp_table$group == "Grp 5 (H1N1)","group"] <- "Group 5"
+    tmp_table[tmp_table$group == "Grp 1 (B)","group"] <- "Group 1"
+    tmp_table[tmp_table$group == "Grp 2 (B)","group"] <- "Group 2"
+    tmp_table[tmp_table$group == "Grp 3 (B)","group"] <- "Group 3"
+    tmp_table[tmp_table$group == "Grp 4 (B)","group"] <- "Group 4"
+    tmp_table[tmp_table$group == "Grp 5 (B)","group"] <- "Group 5"
+
+    a <- intersect(grep("H3N2",tmp_table$strain),grep("panama",tmp_table$strain))
+    tmp_table[a,"strain"] <- "A/Panama/2007/1999 (H3N2)"
+
+    a <- intersect(grep("H3N2",tmp_table$strain),grep("brisbane",tmp_table$strain))
+    tmp_table[a,"strain"] <- "A/Brisbane/10/2007 (H3N2)"
+
+    a <-  intersect(grep("H3N2",tmp_table$strain),grep("wisconsin",tmp_table$strain))
+    tmp_table[a,"strain"] <- "A/Wisconsin/67/2005 (H3N2)"
+
+    a <- intersect(grep("H1N1",tmp_table$strain),grep("fukushima",tmp_table$strain))
+    tmp_table[a,"strain"] <- "A/Fukushima/141/06 (H1N1)"
+
+    a <- intersect(grep("H1N1",tmp_table$strain),grep("solomon",tmp_table$strain))
+    tmp_table[a,"strain"] <- "A/Solomon Islands/3/2006 (H1N1)"
+    
+    a <- intersect(grep("B",tmp_table$strain),grep("brisbane",tmp_table$strain))
+    tmp_table[a,"strain"] <- "B/Brisbane/3/2007 (B)"
+    
+    a <- intersect(grep("B",tmp_table$strain),grep("malaysia",tmp_table$strain))
+    tmp_table[a,"strain"] <- "B/Malaysia/2506/2004 (B)"
+
+
+    tmp_table2[tmp_table2$Group == "Grp 1 (H3N2)","Group"] <- "Group 1"
+    tmp_table2[tmp_table2$Group == "Grp 2 (H3N2)","Group"] <- "Group 2"
+    tmp_table2[tmp_table2$Group == "Grp 3 (H3N2)","Group"] <- "Group 3"
+    tmp_table2[tmp_table2$Group == "Grp 4 (H3N2)","Group"] <- "Group 4"
+    tmp_table2[tmp_table2$Group == "Grp 5 (H3N2)","Group"] <- "Group 5"
+    tmp_table2[tmp_table2$Group == "Grp 1 (H1N1)","Group"] <- "Group 1"
+    tmp_table2[tmp_table2$Group == "Grp 2 (H1N1)","Group"] <- "Group 2"
+    tmp_table2[tmp_table2$Group == "Grp 3 (H1N1)","Group"] <- "Group 3"
+    tmp_table2[tmp_table2$Group == "Grp 4 (H1N1)","Group"] <- "Group 4"
+    tmp_table2[tmp_table2$Group == "Grp 5 (H1N1)","Group"] <- "Group 5"
+    tmp_table2[tmp_table2$Group == "Grp 1 (B)","Group"] <- "Group 1"
+    tmp_table2[tmp_table2$Group == "Grp 2 (B)","Group"] <- "Group 2"
+    tmp_table2[tmp_table2$Group == "Grp 3 (B)","Group"] <- "Group 3"
+    tmp_table2[tmp_table2$Group == "Grp 4 (B)","Group"] <- "Group 4"
+    tmp_table2[tmp_table2$Group == "Grp 5 (B)","Group"] <- "Group 5"
+
+    a <- intersect(grep("H3N2",tmp_table2$Strain),grep("panama",tmp_table2$Strain))
+    tmp_table2[a,"Strain"] <- "A/Panama/2007/1999 (H3N2)"
+    
+    a <- intersect(grep("H3N2",tmp_table2$Strain),grep("brisbane",tmp_table2$Strain))
+    tmp_table2[a,"Strain"] <- "A/Brisbane/10/2007 (H3N2)"
+
+    a <- intersect(grep("H3N2",tmp_table2$Strain),grep("wisconsin",tmp_table2$Strain))
+    tmp_table2[a,"Strain"] <- "A/Wisconsin/67/2005 (H3N2)"
+
+    a <- intersect(grep("H1N1",tmp_table2$Strain),grep("fukushima",tmp_table2$Strain))
+    tmp_table2[a,"Strain"] <- "A/Fukushima/141/06 (H1N1)"
+
+    a <- intersect(grep("H1N1",tmp_table2$Strain),grep("solomon",tmp_table2$Strain))
+    tmp_table2[a,"Strain"] <- "A/Solomon Islands/3/2006 (H1N1)"
+     
+    a <- intersect(grep("B",tmp_table2$Strain),grep("brisbane",tmp_table2$Strain))
+    tmp_table2[a,"Strain"] <- "B/Brisbane/3/2007 (B)"
+    
+    a <- intersect(grep("B",tmp_table2$Strain),grep("malaysia",tmp_table2$Strain))
+    tmp_table2[a,"Strain"] <- "B/Malaysia/2506/2004 (B)"
+
+    #'a <- grep("B",tmp_table2$Strain)[grep("brisbane",tmp_table2$Strain)]
+    #'a <- a[!is.na(a)]
+    #'tmp_table2[a,"Strain"] <- "Brisbane (B)"
+
+    #'a <- grep("B",tmp_table2$Strain)[grep("malaysia",tmp_table2$Strain)]
+    #'a <- a[!is.na(a)]
+   #' tmp_table2[a,"Strain"] <- "Malaysia (B)"
+
+
+    setwd(cur_dir)
+    write.table(tmp_table,"all_results_shiny.csv",sep=",",row.names=FALSE,col.names=TRUE,append=FALSE)
+    write.table(tmp_table2,"all_results_shiny_table.csv",sep=",",row.names=FALSE,col.names=TRUE,append=FALSE)
+}
+
+
+
+#' Takes a list of filenames, and reads these in, returning an MCMC chain
+read_chain_list <- function(filenames, col_names, disregard, thin=1, indices= NULL){
+    tmp_chains <- NULL
+    for(i in 1:length(filenames)){
+        tmp <- read.csv(filenames[[i]],header=0)
+        colnames(tmp) <- col_names
+        tmp <- tmp[tmp[,1] >= disregard,]
+         if(!is.null(indices)){
+            tmp <- tmp[,indices]
+        }
+        tmp <- tmp[seq(1,nrow(tmp),by=thin),]
+        tmp_chains[[i]] <- as.mcmc(tmp)
+    }
+    return(tmp_chains)
+}
+
+
+
 #' Parameter table loading function
 #'
 #' Reads in a .csv file to generate a table of parameter data for use in MCMC. The table should be have the following columns:
@@ -23,10 +322,10 @@
 #' @export
 load_param_table <- function(param_file){
        # Parameters for model
-    param_table <- read.csv(paste(getwd(),param_file,sep=""),header=1)
+    param_table <- read.csv(param_file,header=1)
     # Make some slight formatting adjustments to data and parameter tables
     # Parameters
-    colnames(param_table) <- c("names","value","lower_bound","upper_bound","use_logistic","use_log","step","fixed","nuisance","lower_seed","upper_seed","prior_func","prior_args","log_proposal")
+    colnames(param_table) <- c("names","value","lower_bound","upper_bound","use_logistic","use_log","step","fixed","nuisance","lower_seed","upper_seed","prior_func","prior_args","log_proposal","block")
     param_table$names <- as.character(param_table$names)
     
     # Priors - match up prior functions and arguments
@@ -163,7 +462,7 @@ generate_prediction_intervals_1.2 <- function(mcmc_chains,burnin=NULL,times,runs
     # Combine chains so can sample from all
     mcmc <- NULL
     for(i in 1:length(mcmc_chains)){
-        mcmc <- rbind(mcmc, mcmc_chains[[i]][burnin_start:nrow(mcmc_chains[[i]]),])
+        mcmc <- rbind(mcmc, mcmc_chains[[i]])
     }
 
     # Get sample indices
@@ -212,51 +511,55 @@ generate_prediction_intervals_1.2 <- function(mcmc_chains,burnin=NULL,times,runs
 #' }
 #' @seealso \code{\link{generate_prediction_intervals_1.2}}
 #' @export
-generate_prediction_intervals_1.1 <- function(results_MCMC, burnin, param_table, all_data,MODEL_FUNCTION){
+generate_prediction_intervals_1.1 <- function(results_MCMC, burnin, param_table, all_data,MODEL_FUNCTION,group){
     upper_bounds <- NULL
-        lower_bounds <- NULL
-        predictions <- NULL
-        index <- 1
-        # Generate prediction intervals for each fitted strain
-        for(j in 1:length(results_MCMC)){
-            if(is.null(results_MCMC[[j]]) | length(results_MCMC[[j]]) < 1){
-                next
-            }
-            tmp_chains <- NULL
-            for(z in 1:length(results_MCMC[[j]]$files)){
-                tmp_chains[[z]] <- read.csv(results_MCMC[[j]]$files[[z]], header=1)
-                tmp_chains[[z]] <- tmp_chains[[z]][,2:(nrow(param_table)+1)]
-            }
-                                        # Generate model predictions for all fits
-                                        # Generate prediction intervals
-            bounds <- generate_prediction_intervals_1.2(tmp_chains,
-                                                        burnin,
-                                                        results_MCMC[[j]]$times,
-                                                        runs=10000,
-                                                        level=0.95,
-                                                        smoothing=0.01,
-                                                        MODEL_FUNCTION
+    lower_bounds <- NULL
+    predictions <- NULL
+    index <- 1
+    #' Generate prediction intervals for each fitted strain
+    for(j in 1:length(results_MCMC)){
+        if(is.null(results_MCMC[[j]]) | length(results_MCMC[[j]]) < 1){
+            next
+        }
+        
+        tmp_chains <- read_chain_list(
+            results_MCMC[[j]]$files,
+            c("sampno", param_table$names,"lnlike"),
+            burnin,
+            1,
+            (which(param_table$nuisance==0)+1)
+            )
+        
+        #' Generate model predictions for all fits
+        #' Generate prediction intervals
+        bounds <- generate_prediction_intervals_1.2(tmp_chains,
+                                                    NULL,
+                                                    results_MCMC[[j]]$times,
+                                                    runs=10000,
+                                                    level=0.95,
+                                                    smoothing=0.01,
+                                                    MODEL_FUNCTION
                                                     )
-            upper_bounds[[index]] <- bounds$upper
-            lower_bounds[[index]] <- bounds$lower
-            predictions[[index]] <- as.data.frame(MODEL_FUNCTION(results_MCMC[[j]]$params,
-                                                                     seq(results_MCMC[[j]]$times[1],max(results_MCMC[[j]]$times),by=0.1)))
-            colnames(predictions[[index]]) <- c("variable","value")
-            lower_bounds[[index]]$strain <- upper_bounds[[index]]$strain <- predictions[[index]]$strain <- unique(all_data$strain)[j]
-            lower_bounds[[index]]$group <- upper_bounds[[index]]$group <- predictions[[index]]$group <- unique(all_data$group)[j]
-            index <- index + 1
+        upper_bounds[[index]] <- bounds$upper
+        lower_bounds[[index]] <- bounds$lower
+        predictions[[index]] <- as.data.frame(
+            MODEL_FUNCTION(
+                results_MCMC[[j]]$params[which(param_table$nuisance ==0)],
+                seq(results_MCMC[[j]]$times[1],max(results_MCMC[[j]]$times),by=0.1)
+                )
+            )
+        colnames(predictions[[index]]) <- c("variable","value")
+        lower_bounds[[index]]$strain <- upper_bounds[[index]]$strain <- predictions[[index]]$strain <- unique(all_data$strain)[j]
+        lower_bounds[[index]]$group <- upper_bounds[[index]]$group <- predictions[[index]]$group <- group
+        index <- index + 1
+    }
+    all_model_dat <- NULL
+    for(j in 1:length(predictions)){
+        if(length(predictions) >0 & nrow(predictions[[j]]) > 0){
+            all_model_dat <- rbind(all_model_dat, predictions[[j]])
         }
-        all_model_dat <- NULL
-        for(j in 1:length(predictions)){
-            if(length(predictions) >0 & nrow(predictions[[j]]) > 0){
-                all_model_dat <- rbind(all_model_dat, predictions[[j]])
-            }
-        }
-
-        # Plot model fits
-    temp_all <- all_data[all_data$group == group,]
-    
-    return(list("model_data"=all_model_dat,"prediction_data"=temp_all,"lower_prediction_bounds"=lower_bounds,"upper_prediction_bounds"=upper_bounds))
+    }
+    return(list("model_data"=all_model_dat,"prediction_data"=all_data,"lower_prediction_bounds"=lower_bounds,"upper_prediction_bounds"=upper_bounds))
 }
     
 
